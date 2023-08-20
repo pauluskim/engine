@@ -3,8 +3,7 @@ from torch.utils.data import Dataset
 
 
 class RatingDataset(Dataset):
-    def __init__(self):
-        fpath = "/Users/jack/nsmc/ratings.txt"
+    def __init__(self, fpath):
         self.df = pd.read_csv(fpath, sep="\t")
 
     def __len__(self):

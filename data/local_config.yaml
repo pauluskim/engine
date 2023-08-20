@@ -1,0 +1,5 @@
+rating_dataset: /Users/jack/engine/resource/ratings.txt
+index_output:
+  vanilla: /Users/jack/engine/resource/index/vanilla_rating.pth
+  hnsw: /Users/jack/engine/resource/index/hnsw_rating.pickle
+  faiss: /Users/jack/engine/resource/index/faiss_rating.index

@@ -1,3 +1,10 @@
+import sys
+
+from data.utils import load_args
+
+# sys.path.append("/content/drive/MyDrive/colab/engine")
+
+
 import pickle
 
 import hnswlib
@@ -8,10 +15,11 @@ from data.rating_dataset import RatingDataset
 from model.sentence_bert import SentenceBert
 
 
-class Inference():
+class Hnsw():
     def __init__(self, dataset, batch_size):
         self.model = SentenceBert()
         self.data_loader = DataLoader(dataset, batch_size=batch_size)
+        self.data_size = len(dataset)
 
         self.prepare_index()
 
@@ -19,13 +27,13 @@ class Inference():
         test_vector = self.model.infer("test")
         vector_dim = test_vector.size()[0]
         self.p = hnswlib.Index(space="cosine", dim=vector_dim)
-        self.p.init_index(max_elements=len(self.data_loader), ef_construction=200, M=16)
+        self.p.init_index(max_elements=self.data_size, ef_construction=200, M=16)
 
-    def index(self, output_path):
+    def indexing(self, output_path):
         for doc_ids, contexts in tqdm(self.data_loader, desc="Index vectors"):
             vectors = self.model.infer(contexts)
-            self.p.add_items(vectors, doc_ids)
-            break
+            self.p.add_items(vectors.cpu(), doc_ids)
+
         self.p.set_ef(50)
         self.save(output_path)
 
@@ -35,7 +43,10 @@ class Inference():
 
 
 if __name__ == "__main__":
-    rating_dataset = RatingDataset()
-    inference = Inference(rating_dataset, batch_size=100)
-    index_fpath = "/Users/jack/engine/resource/index/rating.pickle"
-    inference.index(index_fpath)
+    config_path = "/Users/jack/engine/data/local_config.yaml"
+    args = load_args(config_path)
+
+    rating_dataset = RatingDataset(args["rating_dataset"])
+    inference = Hnsw(rating_dataset, batch_size=500)
+    index_fpath = args["index_output"]["hnsw"]
+    inference.indexing(index_fpath)
