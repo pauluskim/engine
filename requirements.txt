@@ -4,7 +4,7 @@ click==8.1.5
 faiss-cpu==1.7.4
 filelock==3.12.2
 fsspec==2023.6.0
-hnswlib @ file:///Users/jack/hnswlib
+hnswlib
 huggingface-hub==0.16.4
 idna==3.4
 Jinja2==3.1.2

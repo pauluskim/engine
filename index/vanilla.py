@@ -1,10 +1,3 @@
-import sys
-from data.utils import is_colab
-
-if is_colab():
-  sys.path.append("/content/engine")
-
-
 import argparse
 
 import torch
