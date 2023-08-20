@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from data.rating_dataset import RatingDataset
-from data.utils import load_args
+from data.utils import load_args, mkdir_if_not_exist
 from model.sentence_bert import SentenceBert
 
 
@@ -21,6 +21,7 @@ class Vanilla:
             vector_lst.append(self.model.infer(contexts))
 
         vectors = torch.cat(vector_lst, 0)
+        mkdir_if_not_exist(output_path)
         torch.save(vectors, output_path)
 
 if __name__ == "__main__":

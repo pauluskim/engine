@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from data.rating_dataset import RatingDataset
-from data.utils import load_args
+from data.utils import load_args, mkdir_if_not_exist
 from model.sentence_bert import SentenceBert
 
 
@@ -46,6 +46,7 @@ class Faiss:
         self.index.train(vectors)
         self.index.add(vectors)
 
+        mkdir_if_not_exist(output_path)
         write_index(self.index, output_path)
         # Index * index = read_index("large.index")
 

@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-from data.utils import load_args
+from data.utils import load_args, mkdir_if_not_exist
 
 # sys.path.append("/content/drive/MyDrive/colab/engine")
 
@@ -39,6 +39,7 @@ class Hnsw():
         self.save(output_path)
 
     def save(self, output_path):
+        mkdir_if_not_exist(output_path)
         with open(output_path, "wb") as f:
             pickle.dump(self.p, f)
 
