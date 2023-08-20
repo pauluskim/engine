@@ -20,7 +20,7 @@ class Faiss:
         self.data_size = len(dataset)
 
         # Number of clusters used for faiss. Select a value 4*sqrt(N) to 16*sqrt(N) - https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index
-        n_clusters = 4 * math.sqrt(self.data_size)
+        n_clusters = int(4 * math.sqrt(self.data_size))
 
         vec_dimension = self.get_vector_dimenstion()
 
