@@ -1,0 +1,5 @@
+rating_dataset: /content/engine/resource/ratings.txt
+index_output:
+  vanilla: /content/engine/resource/index/vanilla_rating.pth
+  hnsw: /content/engine/resource/index/hnsw_rating.pickle
+  faiss: /content/engine/resource/index/faiss_rating.index
