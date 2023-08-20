@@ -1,3 +1,4 @@
+import argparse
 import sys
 
 from data.utils import load_args
@@ -43,10 +44,14 @@ class Hnsw():
 
 
 if __name__ == "__main__":
-    config_path = "/Users/jack/engine/data/local_config.yaml"
-    args = load_args(config_path)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config_path", type=str)
+    args = parser.parse_args()
 
+    config_path = args.config_path
+    args = load_args(config_path)
     rating_dataset = RatingDataset(args["rating_dataset"])
-    inference = Hnsw(rating_dataset, batch_size=500)
+
+    inference = Hnsw(rating_dataset, batch_size=64)
     index_fpath = args["index_output"]["hnsw"]
     inference.indexing(index_fpath)

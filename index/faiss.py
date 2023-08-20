@@ -1,3 +1,4 @@
+import argparse
 import math
 
 import faiss
@@ -49,10 +50,14 @@ class Faiss:
         # Index * index = read_index("large.index")
 
 if __name__ == "__main__":
-    config_path = "/Users/jack/engine/data/local_config.yaml"
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config_path", type=str)
+    args = parser.parse_args()
+
+    config_path = args.config_path
     args = load_args(config_path)
     rating_dataset = RatingDataset(args["rating_dataset"])
 
-    inference = Faiss(rating_dataset, batch_size=2)
+    inference = Faiss(rating_dataset, batch_size=64)
     index_fpath = args["index_output"]["faiss"]
     inference.indexing(index_fpath)

@@ -32,6 +32,6 @@ if __name__ == "__main__":
     args = load_args(config_path)
     rating_dataset = RatingDataset(args["rating_dataset"])
 
-    inference = Vanilla(rating_dataset, batch_size=2)
+    inference = Vanilla(rating_dataset, batch_size=64)
     index_fpath = args["index_output"]["vanilla"]
     inference.indexing(index_fpath)
