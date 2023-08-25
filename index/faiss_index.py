@@ -4,7 +4,6 @@ import math
 import faiss
 import torch
 from faiss import write_index
-from torch import Tensor
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 

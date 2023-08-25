@@ -34,6 +34,8 @@ class Hnsw():
         for doc_ids, contexts in tqdm(self.data_loader, desc="Index vectors"):
             vectors = self.model.infer(contexts)
             self.p.add_items(vectors.cpu(), doc_ids)
+            # TODO: remove doc_ids
+            # self.p.add_items(vectors.cpu(), doc_ids)
 
         self.p.set_ef(50)
         self.save(output_path)
