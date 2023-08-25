@@ -41,8 +41,8 @@ class Faiss:
         for doc_ids, contexts in tqdm(self.data_loader, desc="Index vectors"):
             vector_lst.append(self.model.infer(contexts))
 
-        vectors: Tensor = torch.cat(vector_lst, 0)
-        faiss.normalize_L2(vectors)
+        vectors = torch.cat(vector_lst, 0)
+        faiss.normalize_L2(vectors.cpu().numpy())
         self.index.train(vectors)
         self.index.add(vectors)
 
