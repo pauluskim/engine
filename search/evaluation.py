@@ -19,7 +19,8 @@ class Evaluation:
         with open(fpath) as f:
             self.path_config = yaml.load(f, Loader=yaml.FullLoader)
         self.model = SentenceBert()
-        self.queries = ["재밌는 영화", "여주인공이 예뻣던 영화", "킬링 타임용 영화", "답답해서 암걸릴 것 같은 영화"]
+        self.queries = ["재밌는 영화", "여주인공이 예뻣던 영화", "킬링 타임용 영화", "답답해서 암걸릴 것 같은 영화", "액션 영화",
+                        "카레이싱이 나오는 영화 없나?", "유럽 분위기 낭만 스럽게 나오는 영화"]
         self.load_reviews()
         self.k = top_k
         self.verbose = verbose
@@ -49,7 +50,7 @@ class Evaluation:
 
             self.print_search_result(query, top_results[0], top_results[1])
 
-        print("\n[VANILLA]\t\t Avg Elapsed Time: {:.2f}ms".format(sum(elapsed_times) / len(elapsed_times)))
+        print("\n[VANILLA]\t Avg Elapsed Time: {:.2f}ms".format(sum(elapsed_times) / len(elapsed_times)))
 
     def faiss(self):
         index = read_index(self.path_config["index_output"]["faiss"])
@@ -69,9 +70,16 @@ class Evaluation:
         with open(self.path_config["index_output"]["hnsw"], "rb") as f:
             corpus_embeddings = pickle.load(f)
 
+
+        elapsed_times = []
         for query in self.queries:
             query_vector = self.model.infer(query)
-            doc_ids, _ = corpus_embeddings.knn_query(query_vector, k=self.k)
+            start = time.process_time()
+            corpus_ids, distances = corpus_embeddings.knn_query(query_vector, k=self.k)
+            elapsed_times.append((time.process_time()- start) * 1000)
+
+            self.print_search_result(query, distances[0], corpus_ids[0])
+        print("\n[HNSW]\t\t Avg Elapsed Time: {:.2f}ms".format(sum(elapsed_times) / len(elapsed_times)))
 
     def print_search_result(self, query, scores, doc_idxs):
         if self.verbose:
@@ -89,5 +97,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     eval = Evaluation(env=args.env, verbose=False)
     eval.vanilla()
-    # eval.hnsw()
+    eval.hnsw()
     eval.faiss()
