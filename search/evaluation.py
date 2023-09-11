@@ -69,9 +69,15 @@ class Evaluation:
         with open(self.path_config["index_output"]["hnsw"], "rb") as f:
             corpus_embeddings = pickle.load(f)
 
+        elapsed_times = []
         for query in self.queries:
             query_vector = self.model.infer(query)
-            doc_ids, _ = corpus_embeddings.knn_query(query_vector, k=self.k)
+
+            start = time.process_time()
+            doc_ids, distances = corpus_embeddings.knn_query(query_vector, k=self.k)
+            elapsed_times.append((time.process_time()- start) * 1000)
+            self.print_search_result(query, distances[0], doc_ids[0])
+        print("\n[HNSW]\t\t Avg Elapsed Time: {:.2f}ms".format(sum(elapsed_times) / len(elapsed_times)))
 
     def print_search_result(self, query, scores, doc_idxs):
         if self.verbose:
@@ -89,5 +95,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     eval = Evaluation(env=args.env, verbose=False)
     eval.vanilla()
-    # eval.hnsw()
+    eval.hnsw()
     eval.faiss()
