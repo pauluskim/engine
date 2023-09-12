@@ -3,6 +3,7 @@ torch
 PyYAML
 faiss-cpu
 hnswlib
+grpcio
 
 sentence-transformers
 # For M1 users, use the below command to install sentence-transformers
