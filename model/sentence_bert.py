@@ -21,7 +21,15 @@ class SentenceBert:
     def infer(self, query):
         return self.model.encode(query, convert_to_tensor=True)
 
+    def export(self, path):
+        self.model.save(path)
+
+        sample_query = "hello world"
+        actual_embedding = self.model.encode(sample_query)
+        expected_embedding = SentenceTransformer(path).encode(sample_query)
+        assert all(actual == expected for actual, expected in zip(actual_embedding, expected_embedding))
 
 if __name__ == "__main__":
     model = SentenceBert()
     print(model.infer("learning spoons"))
+    model.export("/Users/jack/engine/resource/ST")

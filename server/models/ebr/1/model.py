@@ -33,10 +33,14 @@ class TritonPythonModel:
         print('Initialized...')
         self.args = args
         self.model_config = json.loads(args["model_config"])
-        self.model = SentenceTransformer("jhgan/ko-sroberta-multitask")
         self.load_reviews()
         self.load_index()
         self.set_output_dtype()
+
+    def load_model(self):
+        model_dir = os.path.join(self.args['model_repository'], self.args['model_version'])
+        model_dir = self.model_config["parameters"]["STMODEL"]["string_value"]
+        self.model = SentenceTransformer(model_dir)
 
     def load_reviews(self):
         model_dir = os.path.join(self.args['model_repository'], self.args['model_version'])

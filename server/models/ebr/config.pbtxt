@@ -36,5 +36,9 @@ parameters: [
     {
         key: "IDX2REVIEW",
         value: {string_value: "ratings.txt"}
+    },
+    {
+        key: "STMODEL",
+        value: {string_value: "ST"}
     }
 ]
