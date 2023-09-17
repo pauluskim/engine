@@ -7,7 +7,9 @@ WORKDIR $WORK_DIR
 
 COPY requirements.txt $WORK_DIR/
 RUN apt-get install -y --no-install-recommends python3 python3-pip
-RUN pip3 install --upgrade pip && pip3 install --upgrade wheel setuptools && pip3 install -r requirements.txt
+RUN pip3 install --upgrade pip  \
+    && pip3 install --upgrade wheel setuptools &&  \
+    pip3 install -r requirements.txt
 
 COPY models $MODEL_DIR
 
@@ -17,9 +19,9 @@ COPY models $MODEL_DIR
 # docker build -t server:test .
 
 # Docker run
-# docker run --rm --shm-size=1gb -p8000:8000 -p8001:8001 -p8002:8002 server:test tritonserver --model-repository=/server/models --model-control-mode=explicit --load-model=ebr
+# docker run --rm -p8000:8000 -p8001:8001 -p8002:8002 server:test tritonserver --model-repository=/server/models --model-control-mode=explicit --load-model=ebr
 
 # Docker run without launching
-# 1. docker run --rm --shm-size=1gb -p8000:8000 -p8001:8001 -p8002:8002 -v /Users/jack/engine/server/models:/models -t -i server:test bash
+# 1. docker run --rm -p8000:8000 -p8001:8001 -p8002:8002 -v /Users/jack/engine/server/models:/server/models -t -i server:test bash
 # 2. In the docker, run the below command to launch the triton server
 #   tritonserver --model-repository=/server/models --model-control-mode=explicit --load-model=ebr

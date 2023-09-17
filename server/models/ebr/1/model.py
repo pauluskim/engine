@@ -33,16 +33,19 @@ class TritonPythonModel:
         print('Initialized...')
         self.args = args
         self.model_config = json.loads(args["model_config"])
+        self.load_model()
         self.load_reviews()
         self.load_index()
         self.set_output_dtype()
 
     def load_model(self):
+        print("load EBR model")
         model_dir = os.path.join(self.args['model_repository'], self.args['model_version'])
-        model_dir = self.model_config["parameters"]["STMODEL"]["string_value"]
-        self.model = SentenceTransformer(model_dir)
+        model_name = self.model_config["parameters"]["STMODEL"]["string_value"]
+        self.model = SentenceTransformer(os.path.join(model_dir, model_name))
 
     def load_reviews(self):
+        print("load review")
         model_dir = os.path.join(self.args['model_repository'], self.args['model_version'])
         idx2review_fname = self.model_config["parameters"]["IDX2REVIEW"]["string_value"]
         review_path = os.path.join(model_dir, idx2review_fname)
@@ -55,6 +58,7 @@ class TritonPythonModel:
                 self.idx2review.append(review)
 
     def load_index(self):
+        print("load index")
         model_dir = os.path.join(self.args['model_repository'], self.args['model_version'])
         index_fname = self.model_config["parameters"]["INDEX"]["string_value"]
         index_path = os.path.join(model_dir, index_fname)
@@ -103,12 +107,12 @@ class TritonPythonModel:
             distances, review_ids = self.index.search(query_vec, self.top_k)
 
             reviews = []
-            for review_id in review_ids:
+            for review_id in review_ids[0]:
                 reviews.append(self.idx2review[review_id])
 
             dist_tensor = pb_utils.Tensor("dists", np.array(distances[0], dtype=self.dist_dtype))
             review_tensor = pb_utils.Tensor("reviews",
-                                            np.array("*&*".join(reviews)), dtype=self.review_dtype)
+                                            np.array("*&*".join(reviews), dtype=self.review_dtype))
 
             inference_response = pb_utils.InferenceResponse(output_tensors=[review_tensor, dist_tensor])
             responses.append(inference_response)
