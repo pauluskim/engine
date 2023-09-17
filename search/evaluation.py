@@ -93,7 +93,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--env", type=str)
     args = parser.parse_args()
-    eval = Evaluation(env=args.env, verbose=False)
+    eval = Evaluation(env=args.env, verbose=True)
     eval.vanilla()
     eval.hnsw()
     eval.faiss()

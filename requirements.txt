@@ -3,9 +3,15 @@ torch
 PyYAML
 faiss-cpu
 hnswlib
-grpcio
+tritonclient\[all\]
 
 sentence-transformers
 # For M1 users, use the below command to install sentence-transformers
 # Reference: https://www.sbert.net/docs/installation.html#:~:text=Apple%20silicon%20Installation%20of%20sentence%2Dtransformers
 # conda install -c conda-forge sentence-transformers
+
+grpcio
+# For M1 users, use the below command to install grpcio
+# Reference: https://stackoverflow.com/a/74306400
+# export GRPC_PYTHON_LDFLAGS=" -framework CoreFoundation"
+# pip install grpcio --no-binary :all:
