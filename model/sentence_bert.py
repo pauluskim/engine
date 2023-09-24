@@ -14,20 +14,13 @@ from sentence_transformers import SentenceTransformer
 
 class SentenceBert:
     def __init__(self):
-        # self.model = SentenceTransformer('all-MiniLM-L6-v2')
-        # self.model = SentenceTransformer("snunlp/KR-SBERT-V40K-klueNLI-augSTS")
         self.model = SentenceTransformer("jhgan/ko-sroberta-multitask")
 
     def infer(self, query):
         return self.model.encode(query, convert_to_tensor=True)
 
     def export(self, path):
-        self.model.save(path)
-
-        sample_query = "hello world"
-        actual_embedding = self.model.encode(sample_query)
-        expected_embedding = SentenceTransformer(path).encode(sample_query)
-        assert all(actual == expected for actual, expected in zip(actual_embedding, expected_embedding))
+        pass
 
 if __name__ == "__main__":
     model = SentenceBert()

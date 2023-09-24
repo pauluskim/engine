@@ -25,11 +25,10 @@ class Faiss:
 
         # We use Inner Product (dot-product) as Index.
         # We will normalize our vectors to unit length, then is Inner Product equal to cosine similarity
-        quantizer = faiss.IndexFlatIP(vec_dimension)
-        self.index = faiss.IndexIVFFlat(quantizer, vec_dimension, n_clusters, faiss.METRIC_INNER_PRODUCT)
+        # Need to init the FAISS index
+        pass
         # Number of clusters to explorer at search time. We will search for nearest neighbors in 3 clusters.
-
-        self.index.nprobe = 3  # number of clusters to explorer at search time.
+        pass
 
     def get_vector_dimenstion(self):
         doc_id, context = next(iter(self.data_loader))
@@ -38,12 +37,14 @@ class Faiss:
     def indexing(self, output_path):
         vector_lst = []
         for doc_ids, contexts in tqdm(self.data_loader, desc="Index vectors"):
-            vector_lst.append(self.model.infer(contexts))
+            # Need to get vector
+            pass
 
-        vectors = torch.cat(vector_lst, 0)
-        faiss.normalize_L2(vectors.cpu().numpy())
-        self.index.train(vectors)
-        self.index.add(vectors)
+        # Need to aggregate vectors
+        pass
+
+        # Need to index
+        pass
 
         mkdir_if_not_exist(output_path)
         write_index(self.index, output_path)

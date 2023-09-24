@@ -43,8 +43,10 @@ class Evaluation:
 
             # We use cosine-similarity and torch.topk to find the highest 5 scores
             start = time.process_time()
-            cos_scores = util.cos_sim(query_embedding, corpus_embeddings)[0]
-            top_results = torch.topk(cos_scores, k=top_k)
+            # Search with the corpus embeddings
+            # 1. Need to calculcate cos_sim
+            # 2. Find the top k docs from the calculation results.
+            pass
             elapsed_times.append((time.process_time()- start) * 1000)
 
             self.print_search_result(query, top_results[0], top_results[1])

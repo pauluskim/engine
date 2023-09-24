@@ -40,30 +40,18 @@ class TritonPythonModel:
 
     def load_model(self):
         print("load EBR model")
-        model_dir = os.path.join(self.args['model_repository'], self.args['model_version'])
-        model_name = self.model_config["parameters"]["STMODEL"]["string_value"]
-        self.model = SentenceTransformer(os.path.join(model_dir, model_name))
+        # Need to load SentenceTransformer model
+        pass
 
     def load_reviews(self):
         print("load review")
-        model_dir = os.path.join(self.args['model_repository'], self.args['model_version'])
-        idx2review_fname = self.model_config["parameters"]["IDX2REVIEW"]["string_value"]
-        review_path = os.path.join(model_dir, idx2review_fname)
-
-        self.idx2review = []
-        with open(review_path, "r", encoding='utf-8') as f:
-            f.readline()
-            for line in f:
-                review = line.strip().split("\t")[1]
-                self.idx2review.append(review)
+        # Need to load reviews to return a response's review during a search
+        pass
 
     def load_index(self):
         print("load index")
-        model_dir = os.path.join(self.args['model_repository'], self.args['model_version'])
-        index_fname = self.model_config["parameters"]["INDEX"]["string_value"]
-        index_path = os.path.join(model_dir, index_fname)
-
-        self.index = read_index(index_path)
+        # Need to load index
+        pass
 
     def set_output_dtype(self):
         dist_config = pb_utils.get_output_config_by_name(self.model_config, "dists")
@@ -101,10 +89,10 @@ class TritonPythonModel:
         # overridden in subsequent inference requests. You can make a copy of
         # the underlying NumPy array and store it if it is required.
         for request in requests:
-            query = pb_utils.get_input_tensor_by_name(request, "query").as_numpy()[0][0].decode("utf-8")
-            query_vec = self.model.encode(query, convert_to_tensor=True)
-            query_vec = np.expand_dims(query_vec, axis=0)
-            distances, review_ids = self.index.search(query_vec, self.top_k)
+            # Need to get user query from the request
+            pass
+            # Need to infer query vector and find the top K ANN reviews.
+            pass
 
             reviews = []
             for review_id in review_ids[0]:

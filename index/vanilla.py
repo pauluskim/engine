@@ -18,11 +18,12 @@ class Vanilla:
     def indexing(self, output_path):
         vector_lst = []
         for doc_ids, contexts in tqdm(self.data_loader, desc="Index vectors"):
-            vector_lst.append(self.model.infer(contexts))
+            # need to infer and aggregate vectors
+            pass
 
-        vectors = torch.cat(vector_lst, 0)
+        # need to convert from list to tensor
         mkdir_if_not_exist(output_path)
-        torch.save(vectors, output_path)
+        # need tosave the embedding vectors
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
