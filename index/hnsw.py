@@ -26,15 +26,21 @@ class Hnsw():
 
     def prepare_index(self):
         # Need to init index
-        pass
+        test_vector = self.model.infer("test")
+        vector_dim = test_vector.size()[0]
+        self.p = hnswlib.Index(space='cosine', dim=vector_dim)
+
+        self.p.init_index(max_elements=self.data_size, ef_construction=200, M=16)
+
 
     def indexing(self, output_path):
         for doc_ids, contexts in tqdm(self.data_loader, desc="Index vectors"):
             # Need to add vector into the hnsw index
-            pass
+            vectors = self.model.infer(contexts)
+            self.p.add_items(vectors.cpu())
 
-        # Need to tune index and save
-        pass
+        self.p.set_ef(50)
+        self.save(output_path)
 
     def save(self, output_path):
         mkdir_if_not_exist(output_path)

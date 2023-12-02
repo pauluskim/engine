@@ -5,18 +5,22 @@ import numpy as np
 import tritonclient.http as httpclient
 
 def infer(triton_client, model_name, query):
+    # Generate inputs
     inputs = []
-    input_tensor = np.array([[query.encode('utf-8')]])
-    input = httpclient.InferInput("query", input_tensor.shape, "BYTES")
-    input.set_data_from_numpy(input_tensor)
+    input_array = np.array([[query.encode('utf-8')]])
+    input = httpclient.InferInput("query", input_array.shape, "BYTES")
+    input.set_data_from_numpy(input_array)
     inputs.append(input)
 
+    # Generate outputs
     outputs = []
     outputs.append(httpclient.InferRequestedOutput("reviews", binary_data=False))
     outputs.append(httpclient.InferRequestedOutput("dists", binary_data=False))
 
+    # Get response from triton
     results = triton_client.infer(model_name=model_name, inputs=inputs, outputs=outputs)
 
+    # postprocess from results
     reviews = results.as_numpy("reviews").tolist().split("*&*")
     dists = results.as_numpy("dists").tolist()
 

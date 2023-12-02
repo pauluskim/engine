@@ -33,25 +33,36 @@ class TritonPythonModel:
         print('Initialized...')
         self.args = args
         self.model_config = json.loads(args["model_config"])
+
+        self.model_dir = os.path.join(self.args["model_repository"], self.args["model_version"])
+
         self.load_model()
         self.load_reviews()
         self.load_index()
         self.set_output_dtype()
 
     def load_model(self):
-        print("load EBR model")
-        # Need to load SentenceTransformer model
-        pass
+        print("load EBR model", flush=True)
+        model_name = self.model_config["parameters"]["STMODEL"]["string_value"]
+        self.model = SentenceTransformer(os.path.join(self.model_dir, model_name))
 
     def load_reviews(self):
-        print("load review")
+        print("load review", flush=True)
         # Need to load reviews to return a response's review during a search
-        pass
+        idx2review_fname = self.model_config["parameters"]["IDX2REVIEW"]["string_value"]
+        review_path = os.path.join(self.model_dir, idx2review_fname)
+
+        self.idx2review = []
+        with open(review_path, "r", encoding='utf-8') as f:
+            f.readline()
+            for line in f:
+                review = line.strip().split("\t")[1]
+                self.idx2review.append(review)
 
     def load_index(self):
-        print("load index")
-        # Need to load index
-        pass
+        print("load index", flush=True)
+        index_fname = os.path.join(self.model_dir, self.model_config["parameters"]["INDEX"]["string_value"])
+        self.index = read_index(index_fname)
 
     def set_output_dtype(self):
         dist_config = pb_utils.get_output_config_by_name(self.model_config, "dists")
@@ -90,9 +101,11 @@ class TritonPythonModel:
         # the underlying NumPy array and store it if it is required.
         for request in requests:
             # Need to get user query from the request
-            pass
+            query = pb_utils.get_input_tensor_by_name(request, "query").as_numpy()[0][0].decode('utf-8')
             # Need to infer query vector and find the top K ANN reviews.
-            pass
+            query_vec = self.model.encode(query, convert_to_tensor=True)
+            query_vec = np.expand_dims(query_vec, axis=0)
+            distances, review_ids = self.index.search(query_vec, self.top_k)
 
             reviews = []
             for review_id in review_ids[0]:

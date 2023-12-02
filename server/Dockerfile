@@ -24,4 +24,4 @@ COPY models $MODEL_DIR
 # Docker run without launching
 # 1. docker run --rm -p8000:8000 -p8001:8001 -p8002:8002 -v /Users/jack/engine/server/models:/server/models -t -i server:test bash
 # 2. In the docker, run the below command to launch the triton server
-#   tritonserver --model-repository=/server/models --model-control-mode=explicit --load-model=ebr
+# tritonserver --model-repository=/server/models --model-control-mode=explicit --load-model=ebr

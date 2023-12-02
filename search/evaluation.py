@@ -45,8 +45,9 @@ class Evaluation:
             start = time.process_time()
             # Search with the corpus embeddings
             # 1. Need to calculcate cos_sim
+            cos_scores = util.cos_sim(query_embedding, corpus_embeddings)[0]
             # 2. Find the top k docs from the calculation results.
-            pass
+            top_results = torch.topk(cos_scores, k=top_k)
             elapsed_times.append((time.process_time()- start) * 1000)
 
             self.print_search_result(query, top_results[0], top_results[1])
@@ -59,9 +60,10 @@ class Evaluation:
         elapsed_times = []
         for query in self.queries:
             query_vector = self.model.infer(query)
-            query_vector = np.expand_dims(query_vector, axis=0)
+            # expand dim for query vector
+            query_vectory = np.expand_dims(query_vector, axis=0)
             start = time.process_time()
-            distances, corpus_ids = index.search(query_vector, self.k)
+            distances, corpus_ids = index.search(query_vectory, self.k)
             elapsed_times.append((time.process_time()- start) * 1000)
 
             self.print_search_result(query, distances[0], corpus_ids[0])
@@ -95,7 +97,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--env", type=str)
     args = parser.parse_args()
-    eval = Evaluation(env=args.env, verbose=True)
+    eval = Evaluation(env=args.env, verbose=False)
     eval.vanilla()
     eval.hnsw()
     eval.faiss()

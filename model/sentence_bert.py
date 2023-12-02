@@ -20,7 +20,12 @@ class SentenceBert:
         return self.model.encode(query, convert_to_tensor=True)
 
     def export(self, path):
-        pass
+        self.model.save(path)
+
+        sample_query = "Learning spoons"
+        actual_embedding = self.model.encode(sample_query)
+        expected_embedding = SentenceTransformer(path).encode(sample_query)
+        assert all([actual == expected for actual, expected in zip(actual_embedding, expected_embedding)])
 
 if __name__ == "__main__":
     model = SentenceBert()
