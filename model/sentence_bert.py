@@ -13,8 +13,8 @@ from sentence_transformers import SentenceTransformer
 
 
 class SentenceBert:
-    def __init__(self):
-        self.model = SentenceTransformer("jhgan/ko-sroberta-multitask")
+    def __init__(self, model_name="jhgan/ko-sroberta-multitask"):
+        self.model = SentenceTransformer(model_name)
 
     def infer(self, query):
         return self.model.encode(query, convert_to_tensor=True)

@@ -1,4 +1,4 @@
-rating_dataset: /content/drive/MyDrive/Colab Notebooks/learning_spoons_index/learningspoons_data.parquet
+dataset: /content/drive/MyDrive/Colab Notebooks/learning_spoons_index/learningspoons_data.parquet
 index_output:
   hnsw: /content/drive/MyDrive/Colab Notebooks/learning_spoons_index/ls_hnsw_rating.pickle
   faiss: /content/drive/MyDrive/Colab Notebooks/learning_spoons_index/ls_faiss_rating.index

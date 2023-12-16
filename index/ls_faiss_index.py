@@ -13,7 +13,7 @@ from model.sentence_bert import SentenceBert
 
 
 class LSFaiss:
-    def __init__(self, model, dataset, batch_size):
+    def __init__(self, model, dataset, batch_size, nprob=50):
         self.model = model
         # This model's max_seq_length = 128
 
@@ -40,26 +40,27 @@ class LSFaiss:
         self.index = faiss.IndexIVFFlat(quantizer, vec_dimension, n_clusters, faiss.METRIC_INNER_PRODUCT)
         # Number of clusters to explorer at search time. We will search for nearest neighbors in 3 clusters.
 
-        self.index.nprobe = 50
+        self.index.nprobe = nprob
 
     def get_vector_dimenstion(self):
-        _, _, _, context = next(iter(self.data_loader))
+        _, _, _, context, _ = next(iter(self.data_loader))
         return self.model.infer(context).size()[1]
 
     def indexing(self, output_path):
         vector_lst = []
-        counter = 1
-        for doc_ids, lec_ids, lec_titles, docs in tqdm(self.data_loader, desc="Index vectors"):
+
+        counter = 0
+        for doc_ids, lec_ids, lec_titles, docs, weights in tqdm(self.data_loader, desc="Index vectors"):
             # Need to get vector
             vector_lst.append(self.model.infer(docs))
             counter += 1
-            if counter == 10:
+            if counter > 5:
                 break
 
         # Need to aggregate vectors
-        vectors = torch.cat(vector_lst, dim=0)
+        vectors = torch.cat(vector_lst, dim=0).cpu()
         # Need to index
-        faiss.normalize_L2(vectors.cpu().numpy())
+        faiss.normalize_L2(vectors.numpy())
         self.index.train(vectors)
         self.index.add(vectors)
 
@@ -76,8 +77,8 @@ if __name__ == "__main__":
     args = load_args(config_path)
 
     model = SentenceBert()
-    rating_dataset = LSDataset(args["dataset"], model.model.tokenizer)
+    dataset = LSDataset(args["dataset"], model.model.tokenizer)
 
-    inference = LSFaiss(model, rating_dataset, batch_size=16)
+    inference = LSFaiss(model, dataset, batch_size=16)
     index_fpath = args["index_output"]["faiss"]
     inference.indexing(index_fpath)

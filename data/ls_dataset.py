@@ -7,22 +7,20 @@ from data.utils import timeit
 
 
 class LSDataset(Dataset):
-    def __init__(self, fpath, tokenizer):
+    def __init__(self, fpath, params, tokenizer=None):
         """
             Need to compare the precision if the length is over than 128 which is the max_seq_len of the model.
 
             params:
                 delimiter: " ", "\n"
                 grouping: ["idx", "title"], ["idx", "title", "section"], non_grouping,
+                section_weight: {"강사소개": 0.1}
         """
-        params = {
-            "delimiter": " ",
-            "grouping": ["idx", "title", "section"]
-        }
 
         self.df = pd.read_parquet(fpath)
         self.df.drop(self.df[self.df['text'].isnull()].index, inplace=True)
-        self.df['text'] = self.df['text'].str.replace('!$%^', params["delimiter"])
+        self.df['text'] = self.df['text'].str.replace('!$%^', params["delimiter"], regex=False)
+        self.section_weight = params["section_weight"]
 
         self.set_refined_df_by_grouping(params["grouping"])
 
@@ -52,6 +50,7 @@ class LSDataset(Dataset):
         row = self.refined_df.iloc[[index]].values[0].tolist()
         lec_id = row[0]
         lec_title = row[1]
+        section = row[2]
         text_id = index
         text = row[-1]
-        return [text_id, lec_id, lec_title, text]
+        return [text_id, lec_id, lec_title, text, self.section_weight.get(section, 1)]

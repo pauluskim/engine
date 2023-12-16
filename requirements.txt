@@ -3,7 +3,7 @@ torch
 PyYAML
 faiss-cpu
 hnswlib
-tritonclient\[all\]
+# tritonclient\[all\]
 
 sentence-transformers
 # For M1 users, use the below command to install sentence-transformers

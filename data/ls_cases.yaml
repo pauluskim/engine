@@ -1,0 +1,45 @@
+- query: PO
+  lec_ids:
+    - 1
+    - 2
+    - 3
+- query: PM
+  lec_ids:
+    - 1
+    - 2
+    - 3
+- query: 피오
+  lec_ids:
+    - 1
+    - 2
+    - 3
+- query: 피엠
+  lec_ids:
+    - 1
+    - 2
+    - 3
+- query: James
+  lec_ids:
+    - 1
+    - 2
+    - 3
+- query: 제임스
+  lec_ids:
+    - 1
+    - 2
+    - 3
+- query: 데이터분석
+  lec_ids:
+    - 1
+    - 2
+    - 3
+- query: 머신러닝
+  lec_ids:
+    - 1
+    - 2
+    - 3
+- query: 통계
+  lec_ids:
+    - 4
+    - 5
+    - 6
