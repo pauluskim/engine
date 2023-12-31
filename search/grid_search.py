@@ -44,14 +44,23 @@ class GridSearch:
           avg_score = 1.0 * sum(result) / len(result)
           f.write(f"{avg_score}\n")
           f.write(f"{result}")
+        return avg_score
 
 
     def explore(self):
         dataset_params = self.params["dataset"]
+        best_score = 0
+        best_name = ""
         for model in self.params["st_model"]:
             keys, values = zip(*dataset_params.items())
             for dataset_param in [dict(zip(keys, v)) for v in itertools.product(*values)]:
-                self.eval(model, dataset_param)
+                score = self.eval(model, dataset_param)
+                if best_score < score:
+                  best_score = score
+                  best_name = f"{model}_{dataset_param}"
+        with open(os.path.join(self.index_root_path, "final_result"), "w") as f:
+          f.write(best_name + "\n")
+          f.write(f"score: {best_score}")
 
 
 
