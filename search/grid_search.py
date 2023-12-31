@@ -1,6 +1,7 @@
 import argparse
 import itertools
 import os
+import pdb
 
 from data.ls_dataset import LSDataset
 from data.utils import load_testcases
@@ -25,18 +26,18 @@ class GridSearch:
         self.cases = load_testcases(args.cases_path)
         self.index_root_path = args.index_root_path
 
-    def eval(self, model, dataset_param):
+    def eval(self, model_name, dataset_param):
 
-        model = SentenceBert(model_name=model)
+        model = SentenceBert(model_name=model_name)
         dataset = LSDataset(self.dataset_path, dataset_param)
 
         inference = LSFaiss(model, dataset, batch_size=16)
-        index_fname = f"{model}_{dataset_param.values()}.index"
+        index_fname = f"{model_name}_{dataset_param}.index"
         index_fpath = os.path.join(self.index_root_path, index_fname)
         inference.indexing(index_fpath)
 
         evaluation = LSEvaluation(self.cases, model, dataset)
-        evaluation.faiss(args.faiss_index)
+        evaluation.faiss(index_fpath)
 
     def explore(self):
         dataset_params = self.params["dataset"]

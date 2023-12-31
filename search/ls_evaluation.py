@@ -1,4 +1,5 @@
 import argparse
+import pdb
 from collections import Counter, defaultdict
 
 import numpy as np
@@ -19,7 +20,7 @@ class LSEvaluation:
 
     def faiss(self, index):
         index = read_index(index)
-
+        pdb.set_trace()
         for case in self.cases:
             query = case["query"]
             retrieved_docs = case["lec_ids"]

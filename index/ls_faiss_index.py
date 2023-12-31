@@ -55,13 +55,13 @@ class LSFaiss:
             # Need to get vector
             vector_lst.append(self.model.infer(docs))
             counter += 1
-            if counter > 5:
+            if counter > 20:
                 break
 
         # Need to aggregate vectors
-        vectors = torch.cat(vector_lst, dim=0).cpu()
+        vectors = torch.cat(vector_lst, dim=0).cpu().numpy()
         # Need to index
-        faiss.normalize_L2(vectors.numpy())
+        faiss.normalize_L2(vectors)
         self.index.train(vectors)
         self.index.add(vectors)
 
