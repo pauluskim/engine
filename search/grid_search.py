@@ -1,10 +1,9 @@
 import argparse
 import itertools
 import os
-from itertools import product
 
 from data.ls_dataset import LSDataset
-from data.utils import load_args
+from data.utils import load_testcases
 from index.ls_faiss_index import LSFaiss
 from model.sentence_bert import SentenceBert
 from search.ls_evaluation import LSEvaluation
@@ -23,7 +22,7 @@ class GridSearch:
             }
         }
         self.dataset_path = args.dataset
-        self.cases = load_args(args.cases_path)
+        self.cases = load_testcases(args.cases_path)
         self.index_root_path = args.index_root_path
 
     def eval(self, model, dataset_param):

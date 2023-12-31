@@ -3,6 +3,7 @@ import time
 from functools import wraps
 from pathlib import Path
 
+import pandas as pd
 import yaml
 
 
@@ -10,6 +11,10 @@ def load_args(config_path):
     with open(config_path) as f:
         yaml_obj = yaml.load(f, Loader=yaml.FullLoader)
     return yaml_obj
+
+def load_testcases(path):
+    cases = pd.read_csv(path, sep="\t")
+    return cases
 
 def mkdir_if_not_exist(path):
     def has_extension(path):

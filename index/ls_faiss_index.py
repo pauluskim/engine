@@ -29,7 +29,8 @@ class LSFaiss:
         self.data_size = len(dataset)
 
         # Number of clusters used for faiss. Select a value 4*sqrt(N) to 16*sqrt(N) - https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index
-        n_clusters = int(4 * math.sqrt(self.data_size))
+        # TODO: But the training vectors should be more than 30 * n_clusters.
+        n_clusters = int(min(4 * math.sqrt(self.data_size), self.data_size / 30))
 
         vec_dimension = self.get_vector_dimenstion()
 
