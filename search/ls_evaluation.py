@@ -1,9 +1,11 @@
 import argparse
 import pdb
+import ast
 from collections import Counter, defaultdict
 
 import numpy as np
 from faiss import read_index
+from pandas.io.sql import PandasSQL
 from sklearn.metrics import dcg_score
 from torch.utils.data import DataLoader
 
@@ -20,19 +22,22 @@ class LSEvaluation:
 
     def faiss(self, index):
         index = read_index(index)
-        pdb.set_trace()
-        for case in self.cases:
-            query = case["query"]
-            retrieved_docs = case["lec_ids"]
+        score_lst = []
+        for _, row in self.cases.iterrows():
+            query = row["query"]
+            retrieved_docs = set(ast.literal_eval(row["idx"]))
 
-            query_vector = self.model.infer(query)
+            query_vector = self.model.infer(query).cpu()
             # expand dim for query vector
             query_vectory = np.expand_dims(query_vector, axis=0)
             scores, corpus_ids = index.search(query_vectory, len(retrieved_docs))
 
             ranked_lectures, search_context = self.postprocess(corpus_ids[0], scores[0])
 
-            self.print_search_result(query, ranked_lectures, search_context)
+            score_lst.append(self.recall_score(retrieved_docs, [doc_idx for doc_idx, score in ranked_lectures]))
+            # self.print_search_result(query, ranked_lectures, search_context)
+        return score_lst
+        
 
 
     def postprocess(self, doc_ids, scores):
@@ -56,9 +61,14 @@ class LSEvaluation:
             print(f"\tRAG: {text}")
             print()
 
-    def dcg(self, expected, corpus_ids, distances):
-
-        dcg_score(expected, [])
+    def recall_score(self, expected_set, actual_lst):
+      recall_cnt = 0
+      for actual in actual_lst:
+        if actual in expected_set:
+          recall_cnt += 1
+      
+      return 1.0 * recall_cnt / len(actual_lst)
+        
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

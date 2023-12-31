@@ -32,12 +32,19 @@ class GridSearch:
         dataset = LSDataset(self.dataset_path, dataset_param)
 
         inference = LSFaiss(model, dataset, batch_size=16)
-        index_fname = f"{model_name}_{dataset_param}.index"
+        iter_name = f"{model_name}_{dataset_param}"
+        index_fname = f"{iter_name}.index"
         index_fpath = os.path.join(self.index_root_path, index_fname)
         inference.indexing(index_fpath)
 
         evaluation = LSEvaluation(self.cases, model, dataset)
-        evaluation.faiss(index_fpath)
+        result = evaluation.faiss(index_fpath)
+        iter_result_name = f"{iter_name}_result.txt"
+        with open(os.path.join(self.index_root_path, iter_result_name), "w") as f:
+          avg_score = 1.0 * sum(result) / len(result)
+          f.write(f"{avg_score}\n")
+          f.write(f"{result}")
+
 
     def explore(self):
         dataset_params = self.params["dataset"]
