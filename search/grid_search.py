@@ -12,10 +12,14 @@ from search.ls_evaluation import LSEvaluation
 
 class GridSearch:
     def __init__(self, args):
+        """
+            "delimiter": [" ", "\n"], # newline, space 차이가 없음
+            "grouping": [None, ["idx", "title", "section"], ["idx", "title"]],  idx, title, section이 가장 좋음
+        """
         self.params = {
             "st_model": ["jhgan/ko-sroberta-multitask"],
             "dataset": {
-                "delimiter": [" ", "\n"],
+                "delimiter": [" ", "\n"], # newline, space 차이가 없음
                 "grouping": [None, ["idx", "title", "section"], ["idx", "title"]],
                 "section_weight": [
                     {"강사소개": 0.1}
@@ -40,9 +44,8 @@ class GridSearch:
         evaluation = LSEvaluation(self.cases, model, dataset)
         result = evaluation.faiss(index_fpath)
         iter_result_name = f"{iter_name}_result.txt"
+        avg_score = 1.0 * sum(result) / len(result)
         with open(os.path.join(self.index_root_path, iter_result_name), "w") as f:
-          avg_score = 1.0 * sum(result) / len(result)
-          f.write(f"{avg_score}\n")
           f.write(f"{result}")
         return avg_score
 
