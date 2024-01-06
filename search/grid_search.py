@@ -22,9 +22,7 @@ class GridSearch:
                 "delimiter": ["\n"],
                 "grouping": [["idx", "title", "section"]],
                 "section_weight": [
-                    {"강사소개": 0.1},
-                    {"강사소개": 1},
-                    {"강사소개": 2}
+                    {"강사소개": 0.1}
                 ]
             }
         }
@@ -59,7 +57,7 @@ class GridSearch:
             keys, values = zip(*dataset_params.items())
             for dataset_param in [dict(zip(keys, v)) for v in itertools.product(*values)]:
                 score = self.eval(model, dataset_param)
-                result_lst.append([f"{model}_{dataset_param}", score])
+                result_lst.append([f"{model}_{dataset_param}", str(score)])
 
         with open(os.path.join(self.index_root_path, "final_result.csv"), "w") as f:
             for result in result_lst:

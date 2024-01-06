@@ -31,15 +31,12 @@ class LSEvaluation:
             query_vector = self.model.infer(query).cpu()
             # expand dim for query vector
             query_vectory = np.expand_dims(query_vector, axis=0)
-            scores, corpus_ids = index.search(query_vectory, len(retrieved_docs))
-
-            if len(retrieved_docs) != len(scores[0]):
-              pdb.set_trace()
+            scores, corpus_ids = index.search(query_vectory, len(retrieved_docs) * 10)
 
             ranked_lectures, search_context = self.postprocess(corpus_ids[0], scores[0])
             ranked_lecture_idxs = [doc_idx for doc_idx, score in ranked_lectures]
 
-            score_lst.append(self.recall_score(retrieved_docs, ranked_lecture_idxs))
+            score_lst.append(self.recall_score(retrieved_docs, ranked_lecture_idxs[:len(retrieved_docs) * 2]))
             retrieved_docs_lst.append(ranked_lecture_idxs)
             # self.print_search_result(query, ranked_lectures, search_context)
         return score_lst, retrieved_docs_lst
