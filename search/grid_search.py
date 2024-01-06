@@ -19,6 +19,8 @@ class GridSearch:
         self.params = {
             "st_model": ["jhgan/ko-sroberta-multitask"],
             "dataset": {
+                "delimiter": ["\n"],
+                "grouping": [["idx", "title", "section"]],
                 "section_weight": [
                     {"강사소개": 0.1},
                     {"강사소개": 1},
@@ -45,7 +47,11 @@ class GridSearch:
         result = evaluation.faiss(index_fpath)
         iter_result_name = f"{iter_name}_result.txt"
         avg_score = 1.0 * sum(result) / len(result)
+        evaluation.cases
+        df['new_col'] = mylist
         with open(os.path.join(self.index_root_path, iter_result_name), "w") as f:
+          pdb.set_trace()
+          evaluation.cases
           f.write(f"{result}")
         return avg_score
 

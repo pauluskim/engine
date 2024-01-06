@@ -55,8 +55,6 @@ class LSFaiss:
             # Need to get vector
             vector_lst.append(self.model.infer(docs))
             counter += 1
-            if counter > 20:
-                break
 
         # Need to aggregate vectors
         vectors = torch.cat(vector_lst, dim=0).cpu().numpy()

@@ -37,8 +37,6 @@ class LSEvaluation:
             score_lst.append(self.recall_score(retrieved_docs, [doc_idx for doc_idx, score in ranked_lectures]))
             # self.print_search_result(query, ranked_lectures, search_context)
         return score_lst
-        
-
 
     def postprocess(self, doc_ids, scores):
         lec_scores = Counter()
@@ -62,13 +60,13 @@ class LSEvaluation:
             print()
 
     def recall_score(self, expected_set, actual_lst):
-      recall_cnt = 0
-      for actual in actual_lst:
-        if actual in expected_set:
-          recall_cnt += 1
-      
-      return 1.0 * recall_cnt / len(actual_lst)
-        
+        recall_cnt = 0
+        for actual in actual_lst:
+            if actual in expected_set:
+                recall_cnt += 1
+
+        return 1.0 * recall_cnt / len(actual_lst)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
