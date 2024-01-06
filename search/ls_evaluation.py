@@ -23,6 +23,7 @@ class LSEvaluation:
     def faiss(self, index):
         index = read_index(index)
         score_lst = []
+        retrieved_docs_lst = []
         for _, row in self.cases.iterrows():
             query = row["query"]
             retrieved_docs = set(ast.literal_eval(row["idx"]))
@@ -32,11 +33,16 @@ class LSEvaluation:
             query_vectory = np.expand_dims(query_vector, axis=0)
             scores, corpus_ids = index.search(query_vectory, len(retrieved_docs))
 
-            ranked_lectures, search_context = self.postprocess(corpus_ids[0], scores[0])
+            if len(retrieved_docs) != len(scores[0]):
+              pdb.set_trace()
 
-            score_lst.append(self.recall_score(retrieved_docs, [doc_idx for doc_idx, score in ranked_lectures]))
+            ranked_lectures, search_context = self.postprocess(corpus_ids[0], scores[0])
+            ranked_lecture_idxs = [doc_idx for doc_idx, score in ranked_lectures]
+
+            score_lst.append(self.recall_score(retrieved_docs, ranked_lecture_idxs))
+            retrieved_docs_lst.append(ranked_lecture_idxs)
             # self.print_search_result(query, ranked_lectures, search_context)
-        return score_lst
+        return score_lst, retrieved_docs_lst
 
     def postprocess(self, doc_ids, scores):
         lec_scores = Counter()

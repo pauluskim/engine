@@ -44,33 +44,26 @@ class GridSearch:
         inference.indexing(index_fpath)
 
         evaluation = LSEvaluation(self.cases, model, dataset)
-        result = evaluation.faiss(index_fpath)
-        iter_result_name = f"{iter_name}_result.txt"
-        avg_score = 1.0 * sum(result) / len(result)
-        evaluation.cases
-        df['new_col'] = mylist
-        with open(os.path.join(self.index_root_path, iter_result_name), "w") as f:
-          pdb.set_trace()
-          evaluation.cases
-          f.write(f"{result}")
+        score_lst, retrieved_docs_lst = evaluation.faiss(index_fpath)
+        iter_result_name = f"{iter_name}_result.csv"
+        avg_score = 1.0 * sum(score_lst) / len(score_lst)
+        evaluation.cases['recall'] = score_lst
+        evaluation.cases['retrived_docs'] = retrieved_docs_lst
+        evaluation.cases.to_csv(os.path.join(self.index_root_path, iter_result_name))
         return avg_score
-
 
     def explore(self):
         dataset_params = self.params["dataset"]
-        best_score = 0
-        best_name = ""
+        result_lst = []
         for model in self.params["st_model"]:
             keys, values = zip(*dataset_params.items())
             for dataset_param in [dict(zip(keys, v)) for v in itertools.product(*values)]:
                 score = self.eval(model, dataset_param)
-                if best_score < score:
-                  best_score = score
-                  best_name = f"{model}_{dataset_param}"
-        with open(os.path.join(self.index_root_path, "final_result"), "w") as f:
-          f.write(best_name + "\n")
-          f.write(f"score: {best_score}")
+                result_lst.append([f"{model}_{dataset_param}", score])
 
+        with open(os.path.join(self.index_root_path, "final_result.csv"), "w") as f:
+            for result in result_lst:
+                f.write("\t".join(result) + "\n")
 
 
 if __name__ == "__main__":
