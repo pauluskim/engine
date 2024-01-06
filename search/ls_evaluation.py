@@ -13,6 +13,10 @@ from data.ls_dataset import LSDataset
 from data.utils import load_args
 from model.sentence_bert import SentenceBert
 
+import torch
+from torch.nn import functional
+
+
 
 class LSEvaluation:
     def __init__(self, cases, model, dataset):
@@ -41,17 +45,25 @@ class LSEvaluation:
             score_lst.append(score)
             retrieved_docs_lst.append(ranked_lecture_idxs)
             if score < 0.3:
-              self.get_scores_for_expected_lec(query_vector, retrieved_docs)
+              lec_info_dict = self.get_scores_for_expected_lec(query_vector, retrieved_docs)
               self.print_search_result(query, ranked_lectures, search_context)
         return score_lst, retrieved_docs_lst
 
-    def get_scores_for_expected_lec(self, retrieved_docs):
+    def get_scores_for_expected_lec(self, query_vector, retrieved_docs):
+        lec_info_dict = dict()
         for lec_id in retrieved_docs:
             docs = self.dataset.get_by_lec_id(lec_id)
+            lec_info = []
             for doc in docs:
                 lec_id, lec_title, section, text, section_weight = doc
-                doc_vec = self.model.infer(text)
-                pdb.set_trace()
+                doc_vec = self.model.infer(text).cpu()
+                doc_vec = functional.normalize(doc_vec, p=2.0, dim = 0)
+                score = torch.inner(doc_vec, query_vector)
+                weighted_score = score * section_weight
+                lec_info.append([section, text, weighted_score])
+            lec_info_dict[lec_id] = lec_info
+        return lec_info_dict  
+            
 
               
 
