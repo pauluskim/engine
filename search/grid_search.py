@@ -57,7 +57,7 @@ class GridSearch:
             keys, values = zip(*dataset_params.items())
             for dataset_param in [dict(zip(keys, v)) for v in itertools.product(*values)]:
                 score = self.eval(model, dataset_param)
-                result_lst.append([f"{model}_{dataset_param}", str(score)])
+                result_lst.append([str(score), f"{model}_{dataset_param}"])
 
         with open(os.path.join(self.index_root_path, "final_result.csv"), "w") as f:
             for result in result_lst:
