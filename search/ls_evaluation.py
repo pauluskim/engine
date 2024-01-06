@@ -26,7 +26,7 @@ class LSEvaluation:
         retrieved_docs_lst = []
         for _, row in self.cases.iterrows():
             query = row["query"]
-            retrieved_docs = set(ast.literal_eval(row["idx"]))
+            retrieved_docs = ast.literal_eval(row["idx"])
 
             query_vector = self.model.infer(query).cpu()
             # expand dim for query vector
@@ -35,8 +35,9 @@ class LSEvaluation:
 
             ranked_lectures, search_context = self.postprocess(corpus_ids[0], scores[0])
             ranked_lecture_idxs = [doc_idx for doc_idx, score in ranked_lectures]
+            ranked_lecture_idxs = ranked_lecture_idxs[:len(retrieved_docs) * 2]
 
-            score_lst.append(self.recall_score(retrieved_docs, ranked_lecture_idxs[:len(retrieved_docs) * 2]))
+            score_lst.append(self.recall_score(retrieved_docs, ranked_lecture_idxs))
             retrieved_docs_lst.append(ranked_lecture_idxs)
             # self.print_search_result(query, ranked_lectures, search_context)
         return score_lst, retrieved_docs_lst
@@ -62,13 +63,14 @@ class LSEvaluation:
             print(f"\tRAG: {text}")
             print()
 
-    def recall_score(self, expected_set, actual_lst):
+    def recall_score(self, expected_lst, actual_lst):
+        actual_set = set(actual_lst)
         recall_cnt = 0
-        for actual in actual_lst:
-            if actual in expected_set:
+        for expected in expected_lst:
+            if expected in actual_set:
                 recall_cnt += 1
 
-        return 1.0 * recall_cnt / len(actual_lst)
+        return 1.0 * recall_cnt / len(expected_lst)
 
 
 if __name__ == "__main__":
