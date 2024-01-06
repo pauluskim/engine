@@ -19,10 +19,10 @@ class GridSearch:
         self.params = {
             "st_model": ["jhgan/ko-sroberta-multitask"],
             "dataset": {
-                "delimiter": [" ", "\n"], # newline, space 차이가 없음
-                "grouping": [None, ["idx", "title", "section"], ["idx", "title"]],
                 "section_weight": [
-                    {"강사소개": 0.1}
+                    {"강사소개": 0.1},
+                    {"강사소개": 1},
+                    {"강사소개": 2}
                 ]
             }
         }
