@@ -31,16 +31,26 @@ class LSEvaluation:
             query_vector = self.model.infer(query).cpu()
             # expand dim for query vector
             query_vectory = np.expand_dims(query_vector, axis=0)
-            scores, corpus_ids = index.search(query_vectory, len(retrieved_docs) * 10)
+            scores, corpus_ids = index.search(query_vectory, len(retrieved_docs) * 20)
 
             ranked_lectures, search_context = self.postprocess(corpus_ids[0], scores[0])
             ranked_lecture_idxs = [doc_idx for doc_idx, score in ranked_lectures]
-            ranked_lecture_idxs = ranked_lecture_idxs[:len(retrieved_docs) * 2]
+            ranked_lecture_idxs = ranked_lecture_idxs[:len(retrieved_docs) * 4]
 
-            score_lst.append(self.recall_score(retrieved_docs, ranked_lecture_idxs))
+            score = self.recall_score(retrieved_docs, ranked_lecture_idxs)
+            score_lst.append(score)
             retrieved_docs_lst.append(ranked_lecture_idxs)
-            # self.print_search_result(query, ranked_lectures, search_context)
+            if score < 0.3:
+              self.get_scores_for_expected_lec(retrieved_docs)
+              self.print_search_result(query, ranked_lectures, search_context)
         return score_lst, retrieved_docs_lst
+
+    def get_scores_for_expected_lec(self, retrieved_docs):
+        for lec_id in retrieved_docs:
+            docs = self.dataset.get_by_lec_id(lec_id)
+            for doc in docs:
+              
+
 
     def postprocess(self, doc_ids, scores):
         lec_scores = Counter()
