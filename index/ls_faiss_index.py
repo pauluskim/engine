@@ -53,6 +53,7 @@ class LSFaiss:
         counter = 0
         for doc_ids, lec_ids, lec_titles, docs, weights in tqdm(self.data_loader, desc="Index vectors"):
             # Need to get vector
+            # TODO: NEED TO VECTORIZE TITLE AS WELL.
             vector_lst.append(self.model.infer(docs))
             counter += 1
 

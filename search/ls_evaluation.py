@@ -41,7 +41,7 @@ class LSEvaluation:
             score_lst.append(score)
             retrieved_docs_lst.append(ranked_lecture_idxs)
             if score < 0.3:
-              self.get_scores_for_expected_lec(retrieved_docs)
+              self.get_scores_for_expected_lec(query_vector, retrieved_docs)
               self.print_search_result(query, ranked_lectures, search_context)
         return score_lst, retrieved_docs_lst
 
@@ -49,6 +49,10 @@ class LSEvaluation:
         for lec_id in retrieved_docs:
             docs = self.dataset.get_by_lec_id(lec_id)
             for doc in docs:
+                lec_id, lec_title, section, text, section_weight = doc
+                doc_vec = self.model.infer(text)
+                pdb.set_trace()
+
               
 
 
