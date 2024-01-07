@@ -57,7 +57,6 @@ class LSEvaluation:
             lec_info = []
             for doc in docs:
                 lec_id, lec_title, section, text, section_weight = doc
-                pdb.set_trace()
                 doc_vec = self.model.infer(text)
                 doc_vec = doc_vec.cpu()
                 doc_vec = functional.normalize(doc_vec, p=2.0, dim = 0)
@@ -73,6 +72,7 @@ class LSEvaluation:
         for doc_id, score in zip(doc_ids, scores):
             text_id, lec_id, lec_title, text, section, section_weight = self.dataset[doc_id]
             lec_scores[lec_id] += score * section_weight
+            pdb.set_trace()
             search_context[lec_id].append([lec_title, text, section, score * section_weight])
 
         return sorted(lec_scores.items(), key=lambda item: -item[1]), search_context
