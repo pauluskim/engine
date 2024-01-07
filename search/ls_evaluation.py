@@ -63,6 +63,7 @@ class LSEvaluation:
             retrieved_docs = ast.literal_eval(row["idx"])
 
             query_embedding = self.model.infer(query)
+            query_embedding = functional.normalize(query_embedding, p=2.0, dim=0)
 
             cos_scores = torch.inner(query_embedding, corpus_embeddings)
             # cos_scores = util.cos_sim(query_embedding, corpus_embeddings)[0]
