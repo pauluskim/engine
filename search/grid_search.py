@@ -47,6 +47,7 @@ class GridSearch:
         avg_score = 1.0 * sum(score_lst) / len(score_lst)
         evaluation.cases['recall'] = score_lst
         evaluation.cases['retrieved_docs'] = retrieved_docs_lst
+        pdb.set_trace()
         evaluation.cases['expected_details'] = expected_lec_detail_lst
         evaluation.cases['result_details'] = search_result_detail_lst
         evaluation.cases.to_csv(os.path.join(self.index_root_path, iter_result_name))

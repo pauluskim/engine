@@ -44,14 +44,14 @@ class LSFaiss:
         self.index.nprobe = nprob
 
     def get_vector_dimenstion(self):
-        _, _, _, context, _ = next(iter(self.data_loader))
+        _, _, _, context, _, _ = next(iter(self.data_loader))
         return self.model.infer(context).size()[1]
 
     def indexing(self, output_path):
         vector_lst = []
 
         counter = 0
-        for doc_ids, lec_ids, lec_titles, docs, weights in tqdm(self.data_loader, desc="Index vectors"):
+        for doc_ids, lec_ids, lec_titles, docs, section, weights in tqdm(self.data_loader, desc="Index vectors"):
             # Need to get vector
             # TODO: NEED TO VECTORIZE TITLE AS WELL.
             vector_lst.append(self.model.infer(docs))

@@ -57,7 +57,9 @@ class LSEvaluation:
             lec_info = []
             for doc in docs:
                 lec_id, lec_title, section, text, section_weight = doc
-                doc_vec = self.model.infer(text).cpu()
+                pdb.set_trace()
+                doc_vec = self.model.infer(text)
+                doc_vec = doc_vec.cpu()
                 doc_vec = functional.normalize(doc_vec, p=2.0, dim = 0)
                 score = torch.inner(doc_vec, query_vector)
                 weighted_score = score * section_weight
