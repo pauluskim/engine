@@ -1,6 +1,8 @@
 import argparse
+import pdb
 
 import torch
+from torch.nn import functional
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -20,7 +22,8 @@ class LSVanilla:
         counter = 0
         for doc_ids, lec_ids, lec_titles, docs, section, weights in tqdm(self.data_loader, desc="Index vectors"):
             # need to infer and aggregate vectors
-            vector_lst.append(self.model.infer(docs))
+            doc_vectors = functional.normalize(self.model.infer(docs), p=2.0, dim = 0)
+            vector_lst.append(doc_vectors)
             counter += 1
 
 

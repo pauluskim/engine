@@ -63,11 +63,13 @@ class LSEvaluation:
 
             query_embedding = self.model.infer(query)
 
-            cos_scores = util.cos_sim(query_embedding, corpus_embeddings)[0]
+            cos_scores = torch.inner(query_embedding, corpus_embeddings)
+            # cos_scores = util.cos_sim(query_embedding, corpus_embeddings)[0]
+
             # 2. Find the top k docs from the calculation results.
             scores, doc_idxs = torch.topk(cos_scores, k=len(retrieved_docs) * 20)
 
-            ranked_lectures, search_context = self.postprocess(doc_idxs, scores)
+            ranked_lectures, search_context = self.postprocess(doc_idxs.cpu(), scores.cpu())
             ranked_lecture_idxs = [doc_idx for doc_idx, score in ranked_lectures]
             ranked_lecture_idxs = ranked_lecture_idxs[:len(retrieved_docs) * 4]
 
@@ -75,7 +77,7 @@ class LSEvaluation:
             score_lst.append(score)
             retrieved_docs_lst.append(ranked_lecture_idxs)
 
-            expected_lec_details = self.get_search_context_for_expected_lec(query_embedding, retrieved_docs)
+            expected_lec_details = self.get_search_context_for_expected_lec(query_embedding.cpu(), retrieved_docs)
             search_result_details = self.get_search_context_for_search_result(query, ranked_lectures, search_context)
             expected_lec_detail_lst.append(expected_lec_details)
             search_result_detail_lst.append(search_result_details)
