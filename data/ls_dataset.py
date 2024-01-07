@@ -54,7 +54,7 @@ class LSDataset(Dataset):
         section = row[2]
         text_id = index
         text = row[-1]
-        return [text_id, lec_id, lec_title, text, self.section_weight.get(section, 1)]
+        return [text_id, lec_id, lec_title, text, section, self.section_weight.get(section, 1)]
 
     def get_by_lec_id(self, lec_id):
         rows = self.refined_df[self.refined_df["idx"] == lec_id].values.tolist()

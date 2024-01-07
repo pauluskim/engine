@@ -42,11 +42,13 @@ class GridSearch:
         inference.indexing(index_fpath)
 
         evaluation = LSEvaluation(self.cases, model, dataset)
-        score_lst, retrieved_docs_lst = evaluation.faiss(index_fpath)
+        score_lst, retrieved_docs_lst, expected_lec_detail_lst, search_result_detail_lst = evaluation.faiss(index_fpath)
         iter_result_name = f"{iter_name}_result.csv"
         avg_score = 1.0 * sum(score_lst) / len(score_lst)
         evaluation.cases['recall'] = score_lst
-        evaluation.cases['retrived_docs'] = retrieved_docs_lst
+        evaluation.cases['retrieved_docs'] = retrieved_docs_lst
+        evaluation.cases['expected_details'] = expected_lec_detail_lst
+        evaluation.cases['result_details'] = search_result_detail_lst
         evaluation.cases.to_csv(os.path.join(self.index_root_path, iter_result_name))
         return avg_score
 

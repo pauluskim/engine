@@ -5,9 +5,6 @@ from collections import Counter, defaultdict
 
 import numpy as np
 from faiss import read_index
-from pandas.io.sql import PandasSQL
-from sklearn.metrics import dcg_score
-from torch.utils.data import DataLoader
 
 from data.ls_dataset import LSDataset
 from data.utils import load_args
@@ -28,6 +25,8 @@ class LSEvaluation:
         index = read_index(index)
         score_lst = []
         retrieved_docs_lst = []
+        expected_lec_detail_lst = []
+        search_result_detail_lst = []
         for _, row in self.cases.iterrows():
             query = row["query"]
             retrieved_docs = ast.literal_eval(row["idx"])
@@ -44,12 +43,14 @@ class LSEvaluation:
             score = self.recall_score(retrieved_docs, ranked_lecture_idxs)
             score_lst.append(score)
             retrieved_docs_lst.append(ranked_lecture_idxs)
-            if score < 0.3:
-              lec_info_dict = self.get_scores_for_expected_lec(query_vector, retrieved_docs)
-              self.print_search_result(query, ranked_lectures, search_context)
-        return score_lst, retrieved_docs_lst
 
-    def get_scores_for_expected_lec(self, query_vector, retrieved_docs):
+            expected_lec_details = self.get_search_context_for_expected_lec(query_vector, retrieved_docs)
+            search_result_details = self.get_search_context_for_search_result(query, ranked_lectures, search_context)
+            expected_lec_detail_lst.append(expected_lec_details)
+            search_result_detail_lst.append(search_result_details)
+        return score_lst, retrieved_docs_lst, expected_lec_detail_lst, search_result_detail_lst
+
+    def get_search_context_for_expected_lec(self, query_vector, retrieved_docs):
         lec_info_dict = dict()
         for lec_id in retrieved_docs:
             docs = self.dataset.get_by_lec_id(lec_id)
@@ -60,34 +61,28 @@ class LSEvaluation:
                 doc_vec = functional.normalize(doc_vec, p=2.0, dim = 0)
                 score = torch.inner(doc_vec, query_vector)
                 weighted_score = score * section_weight
-                lec_info.append([section, text, weighted_score])
+                lec_info.append([lec_title, section, text, weighted_score])
             lec_info_dict[lec_id] = lec_info
         return lec_info_dict  
             
-
-              
-
-
     def postprocess(self, doc_ids, scores):
         lec_scores = Counter()
         search_context = defaultdict(list)
         for doc_id, score in zip(doc_ids, scores):
-            text_id, lec_id, lec_title, text, section_weight = self.dataset[doc_id]
+            text_id, lec_id, lec_title, text, section, section_weight = self.dataset[doc_id]
             lec_scores[lec_id] += score * section_weight
-            search_context[lec_id].append([lec_title, text, score * section_weight])
+            search_context[lec_id].append([lec_title, text, section, score * section_weight])
 
         return sorted(lec_scores.items(), key=lambda item: -item[1]), search_context
 
-    def print_search_result(self, query, ranked_lectures, search_context):
-        print("-----------------------------------------------------")
-        print(f"Query: {query}")
+    def get_search_context_for_search_result(self, query, ranked_lectures, search_context):
+        lec_info_dict = dict()
         for lec_id, score in ranked_lectures:
-            title = search_context[lec_id][0][0]
-            text = ", ".join([f"{context[1]}:{context[2]}" for context in search_context[lec_id]])
-            print(f"\ttitle: {title}")
-            print(f"\tscore: {score}")
-            print(f"\tRAG: {text}")
-            print()
+            lec_info = []
+            for lec_title, text, section, weighted_score in search_context[lec_id]:
+                lec_info.append([lec_title, section, text, weighted_score])
+            lec_info_dict[lec_id] = lec_info
+        return lec_info_dict
 
     def recall_score(self, expected_lst, actual_lst):
         actual_set = set(actual_lst)
