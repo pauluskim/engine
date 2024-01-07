@@ -20,7 +20,7 @@ class LSDataset(Dataset):
 
         self.df = pd.read_parquet(fpath)
         self.df.drop(self.df[self.df['text'].isnull()].index, inplace=True)
-        self.df['text'] = self.df['text'].str.replace('!$%^', params["delimiter"], regex=False)
+        self.df['text'] = self.df['text'].str.replace('$%^', params["delimiter"], regex=False).replace('!$%^', params["delimiter"], regex=False)
         self.section_weight = params["section_weight"]
 
         self.set_refined_df_by_grouping(params["grouping"])

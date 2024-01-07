@@ -5,6 +5,7 @@ from collections import Counter, defaultdict
 
 import numpy as np
 from faiss import read_index
+from sentence_transformers import util
 
 from data.ls_dataset import LSDataset
 from data.utils import load_args
@@ -20,7 +21,7 @@ class LSEvaluation:
         self.cases = cases
         self.model = model
         self.dataset = dataset
-
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
     def faiss(self, index):
         index = read_index(index)
         score_lst = []
@@ -50,6 +51,48 @@ class LSEvaluation:
             search_result_detail_lst.append(search_result_details)
         return score_lst, retrieved_docs_lst, expected_lec_detail_lst, search_result_detail_lst
 
+    def vanilla(self, index):
+        corpus_embeddings = torch.load(index, map_location=torch.device(self.device))
+        score_lst = []
+        retrieved_docs_lst = []
+        expected_lec_detail_lst = []
+        search_result_detail_lst = []
+        for _, row in self.cases.iterrows():
+            query = row["query"]
+            retrieved_docs = ast.literal_eval(row["idx"])
+
+            query_embedding = self.model.infer(query)
+
+            cos_scores = util.cos_sim(query_embedding, corpus_embeddings)[0]
+            # 2. Find the top k docs from the calculation results.
+            scores, doc_idxs = torch.topk(cos_scores, k=len(retrieved_docs) * 20)
+
+            ranked_lectures, search_context = self.postprocess(doc_idxs, scores)
+            ranked_lecture_idxs = [doc_idx for doc_idx, score in ranked_lectures]
+            ranked_lecture_idxs = ranked_lecture_idxs[:len(retrieved_docs) * 4]
+
+            score = self.recall_score(retrieved_docs, ranked_lecture_idxs)
+            score_lst.append(score)
+            retrieved_docs_lst.append(ranked_lecture_idxs)
+
+            expected_lec_details = self.get_search_context_for_expected_lec(query_embedding, retrieved_docs)
+            search_result_details = self.get_search_context_for_search_result(query, ranked_lectures, search_context)
+            expected_lec_detail_lst.append(expected_lec_details)
+            search_result_detail_lst.append(search_result_details)
+        return score_lst, retrieved_docs_lst, expected_lec_detail_lst, search_result_detail_lst
+
+
+    def postprocess(self, doc_ids, scores):
+        lec_scores = Counter()
+        search_context = defaultdict(list)
+        for doc_id, score in zip(doc_ids, scores):
+            text_id, lec_id, lec_title, text, section, section_weight = self.dataset[doc_id]
+            lec_scores[lec_id] += score * section_weight
+            search_context[lec_id].append([lec_title, text, section, score * section_weight])
+
+        return sorted(lec_scores.items(), key=lambda item: -item[1]), search_context
+
+
     def get_search_context_for_expected_lec(self, query_vector, retrieved_docs):
         lec_info_dict = dict()
         for lec_id in retrieved_docs:
@@ -57,25 +100,14 @@ class LSEvaluation:
             lec_info = []
             for doc in docs:
                 lec_id, lec_title, section, text, section_weight = doc
-                doc_vec = self.model.infer(text)
-                doc_vec = doc_vec.cpu()
+                doc_vec = self.model.infer(text).cpu()
                 doc_vec = functional.normalize(doc_vec, p=2.0, dim = 0)
                 score = torch.inner(doc_vec, query_vector)
                 weighted_score = score * section_weight
                 lec_info.append([lec_title, section, text, weighted_score])
             lec_info_dict[lec_id] = lec_info
         return lec_info_dict  
-            
-    def postprocess(self, doc_ids, scores):
-        lec_scores = Counter()
-        search_context = defaultdict(list)
-        for doc_id, score in zip(doc_ids, scores):
-            text_id, lec_id, lec_title, text, section, section_weight = self.dataset[doc_id]
-            lec_scores[lec_id] += score * section_weight
-            pdb.set_trace()
-            search_context[lec_id].append([lec_title, text, section, score * section_weight])
 
-        return sorted(lec_scores.items(), key=lambda item: -item[1]), search_context
 
     def get_search_context_for_search_result(self, query, ranked_lectures, search_context):
         lec_info_dict = dict()
