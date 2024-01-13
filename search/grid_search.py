@@ -19,6 +19,7 @@ class GridSearch:
             "grouping": [None, ["idx", "title", "section"], ["idx", "title"]],  idx, title, section이 가장 좋음
 
             sections: ['인트로' '강의소개' '수강효과' '수강특징' '수강대상' '수강 후기' '질의 응답' '강사소개']
+                    {"강사소개": 0.1, "title": 1,2, "강의소개": 1,0.5 "인트로": 1,0.5},
         """
         self.params = {
             "st_model": ["jhgan/ko-sroberta-multitask",
@@ -28,13 +29,6 @@ class GridSearch:
                 "delimiter": [" "],
                 "grouping": [["idx", "title", "section"]],
                 "section_weight": [
-                    {"강사소개": 0.1, "title": 2, "강의소개": 2, "인트로": 0.5},
-                    {"강사소개": 0.1, "title": 1, "강의소개": 2, "인트로": 0.5},
-                    {"강사소개": 0.1, "title": 2, "강의소개": 1, "인트로": 0.5},
-                    {"강사소개": 0.1, "title": 1, "강의소개": 1, "인트로": 0.5},
-                    {"강사소개": 0.1, "title": 2, "강의소개": 2, "인트로": 1},
-                    {"강사소개": 0.1, "title": 1, "강의소개": 2, "인트로": 1},
-                    {"강사소개": 0.1, "title": 2, "강의소개": 1, "인트로": 1},
                     {"강사소개": 0.1, "title": 1, "강의소개": 1, "인트로": 1},
                 ]
             }
@@ -92,6 +86,7 @@ class GridSearch:
         dataset_params = self.params["dataset"]
         result_lst = []
         for model in self.params["st_model"]:
+            print("MODEL: ", model)
             keys, values = zip(*dataset_params.items())
             for dataset_param in [dict(zip(keys, v)) for v in itertools.product(*values)]:
                 if self.index_type == "faiss":
