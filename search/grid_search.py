@@ -24,16 +24,18 @@ class GridSearch:
 
             "st_model": ["jhgan/ko-sroberta-multitask",
                          "snunlp/KR-SBERT-V40K-klueNLI-augSTS",
-                         "intfloat/multilingual-e5-large"],
+                         "intfloat/multilingual-e5-large",
+                         "jhgan/ko-sbert-sts"],
         """
         self.params = {
-            "st_model": ["intfloat/multilingual-e5-large"],
+            "st_model": ["jhgan/ko-sroberta-multitask"],
             "dataset": {
                 "delimiter": [" "],
                 "grouping": [["idx", "title", "section"]],
                 "section_weight": [
                     {"강사소개": 0.1, "title": 1, "강의소개": 1, "인트로": 1},
-                ]
+                ],
+                "retrieval_candidate_times": [5, 20, 50, 100]
             }
         }
         self.dataset_path = args.dataset
@@ -52,7 +54,7 @@ class GridSearch:
         index_fpath = os.path.join(self.index_root_path, index_fname)
         inference.indexing(index_fpath)
 
-        evaluation = LSEvaluation(self.cases, model, dataset)
+        evaluation = LSEvaluation(self.cases, model, dataset, dataset_param["retrieval_candidate_times"])
         score_lst, retrieved_docs_lst, expected_lec_detail_lst, search_result_detail_lst = evaluation.vanilla(index_fpath)
         iter_result_name = f"{iter_name}_vanilla_result.csv"
         avg_score = 1.0 * sum(score_lst) / len(score_lst)
@@ -74,7 +76,7 @@ class GridSearch:
         index_fpath = os.path.join(self.index_root_path, index_fname)
         inference.indexing(index_fpath)
 
-        evaluation = LSEvaluation(self.cases, model, dataset)
+        evaluation = LSEvaluation(self.cases, model, dataset, dataset_param["retrieval_candidate_times"])
         score_lst, retrieved_docs_lst, expected_lec_detail_lst, search_result_detail_lst = evaluation.faiss(index_fpath)
         iter_result_name = f"{iter_name}_result.csv"
         avg_score = 1.0 * sum(score_lst) / len(score_lst)
