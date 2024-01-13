@@ -8,15 +8,11 @@ from tqdm import tqdm
 
 from data.rating_dataset import RatingDataset
 from data.utils import load_args, mkdir_if_not_exist
+from index.IndexInterface import IndexInterface
 from model.sentence_bert import SentenceBert
 
 
-class LSVanilla:
-    def __init__(self, dataset, batch_size):
-        self.model = SentenceBert()
-        self.data_loader = DataLoader(dataset, batch_size=batch_size)
-        self.data_size = len(dataset)
-
+class LSVanilla(IndexInterface):
     def indexing(self, output_path):
         vector_lst = []
         counter = 0

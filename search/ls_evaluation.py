@@ -96,7 +96,6 @@ class LSEvaluation:
 
         return sorted(lec_scores.items(), key=lambda item: -item[1]), search_context
 
-    @timeit
     def get_search_context_for_expected_lec(self, query_vector, retrieved_docs):
         lec_info_dict = dict()
         for lec_id in retrieved_docs:
@@ -121,7 +120,6 @@ class LSEvaluation:
             lec_info_dict[lec_id] = list(zip(*t_lst))
         return lec_info_dict  
 
-    @timeit
     def get_search_context_for_search_result(self, query, ranked_lectures, search_context):
         lec_info_dict = dict()
         for lec_id, score in ranked_lectures:

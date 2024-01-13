@@ -20,11 +20,14 @@ class GridSearch:
 
             sections: ['인트로' '강의소개' '수강효과' '수강특징' '수강대상' '수강 후기' '질의 응답' '강사소개']
                     {"강사소개": 0.1, "title": 1,2, "강의소개": 1,0.5 "인트로": 1,0.5},
-        """
-        self.params = {
+
+
             "st_model": ["jhgan/ko-sroberta-multitask",
                          "snunlp/KR-SBERT-V40K-klueNLI-augSTS",
                          "intfloat/multilingual-e5-large"],
+        """
+        self.params = {
+            "st_model": ["intfloat/multilingual-e5-large"],
             "dataset": {
                 "delimiter": [" "],
                 "grouping": [["idx", "title", "section"]],
@@ -43,7 +46,7 @@ class GridSearch:
         model = SentenceBert(model_name=model_name)
         dataset = LSDataset(self.dataset_path, dataset_param)
 
-        inference = LSVanilla(dataset, 16)
+        inference = LSVanilla(model, dataset, 16)
         iter_name = f"{model_name}_{dataset_param}"
         index_fname = f"{iter_name}.pth"
         index_fpath = os.path.join(self.index_root_path, index_fname)

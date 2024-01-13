@@ -9,12 +9,14 @@ from tqdm import tqdm
 
 from data.ls_dataset import LSDataset
 from data.utils import load_args, mkdir_if_not_exist
+from index.IndexInterface import IndexInterface
 from model.sentence_bert import SentenceBert
 
 
-class LSFaiss:
+class LSFaiss(IndexInterface):
     def __init__(self, model, dataset, batch_size, nprob=50):
-        self.model = model
+        super(model, dataset, batch_size)
+
         # This model's max_seq_length = 128
 
         # That means, the position embedding layer of the transformers has 512 weights,
@@ -24,9 +26,6 @@ class LSFaiss:
         # but the position embedding weights (>128) are not properly trained and can therefore mess up your results.
         # Please also check this StackOverflow post.
         # https://stackoverflow.com/questions/75901231/max-seq-length-for-transformer-sentence-bert
-
-        self.data_loader = DataLoader(dataset, batch_size=batch_size)
-        self.data_size = len(dataset)
 
         # Number of clusters used for faiss. Select a value 4*sqrt(N) to 16*sqrt(N) - https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index
         # TODO: But the training vectors should be more than 30 * n_clusters.
