@@ -101,15 +101,24 @@ class LSEvaluation:
         lec_info_dict = dict()
         for lec_id in retrieved_docs:
             docs = self.dataset.get_by_lec_id(lec_id)
-            lec_info = []
+            lec_titles = []
+            sections = []
+            texts = []
+            section_weights = []
             for doc in docs:
                 lec_id, lec_title, section, text, section_weight = doc
-                doc_vec = self.model.infer(text).cpu()
-                doc_vec = functional.normalize(doc_vec, p=2.0, dim = 0)
-                score = torch.inner(doc_vec, query_vector)
-                weighted_score = score * section_weight
-                lec_info.append([lec_title, section, text, weighted_score])
-            lec_info_dict[lec_id] = lec_info
+                lec_titles.append(lec_title)
+                sections.append(section)
+                texts.append(text)
+                section_weights.append(section_weight)
+
+            vectors = self.model.infer(texts).cpu()
+            normed_vectors = functional.normalize(vectors, p=2.0, dim=0)
+            scores = torch.inner(normed_vectors, query_vector)
+            weighted_scores = scores * torch.tensor(section_weights)
+
+            t_lst = [lec_titles, sections, texts, weighted_scores]
+            lec_info_dict[lec_id] = list(zip(*t_lst))
         return lec_info_dict  
 
     @timeit
