@@ -69,11 +69,14 @@ class LSEvaluation:
             # cos_scores = util.cos_sim(query_embedding, corpus_embeddings)[0]
 
             # 2. Find the top k docs from the calculation results.
-            scores, doc_idxs = torch.topk(cos_scores, k=len(retrieved_docs) * self.retrieval_candidate_times * 2)
+            scores, doc_idxs = torch.topk(cos_scores, k=min(
+                max(len(retrieved_docs), self.retrieval_candidate_times*2),
+                len(cos_scores))
+                                          )
 
             ranked_lectures, search_context = self.postprocess(doc_idxs.cpu(), scores.cpu())
             ranked_lecture_idxs = [doc_idx for doc_idx, score in ranked_lectures]
-            ranked_lecture_idxs = ranked_lecture_idxs[:len(retrieved_docs) * self.retrieval_candidate_times]
+            ranked_lecture_idxs = ranked_lecture_idxs[:max(len(retrieved_docs), self.retrieval_candidate_times)]
 
             score = self.recall_score(retrieved_docs, ranked_lecture_idxs)
             score_lst.append(score)
