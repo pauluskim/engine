@@ -17,14 +17,25 @@ class GridSearch:
         """
             "delimiter": [" ", "\n"], # newline, space 차이가 없음
             "grouping": [None, ["idx", "title", "section"], ["idx", "title"]],  idx, title, section이 가장 좋음
+
+            sections: ['인트로' '강의소개' '수강효과' '수강특징' '수강대상' '수강 후기' '질의 응답' '강사소개']
         """
         self.params = {
-            "st_model": ["jhgan/ko-sroberta-multitask"],
+            "st_model": ["jhgan/ko-sroberta-multitask",
+                         "snunlp/KR-SBERT-V40K-klueNLI-augSTS",
+                         "intfloat/multilingual-e5-large"],
             "dataset": {
                 "delimiter": [" "],
                 "grouping": [["idx", "title", "section"]],
                 "section_weight": [
-                    {"강사소개": 0.1}
+                    {"강사소개": 0.1, "title": 2, "강의소개": 2, "인트로": 0.5},
+                    {"강사소개": 0.1, "title": 1, "강의소개": 2, "인트로": 0.5},
+                    {"강사소개": 0.1, "title": 2, "강의소개": 1, "인트로": 0.5},
+                    {"강사소개": 0.1, "title": 1, "강의소개": 1, "인트로": 0.5},
+                    {"강사소개": 0.1, "title": 2, "강의소개": 2, "인트로": 1},
+                    {"강사소개": 0.1, "title": 1, "강의소개": 2, "인트로": 1},
+                    {"강사소개": 0.1, "title": 2, "강의소개": 1, "인트로": 1},
+                    {"강사소개": 0.1, "title": 1, "강의소개": 1, "인트로": 1},
                 ]
             }
         }
