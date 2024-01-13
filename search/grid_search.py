@@ -35,7 +35,7 @@ class GridSearch:
                 "section_weight": [
                     {"강사소개": 0.1, "title": 1, "강의소개": 1, "인트로": 1},
                 ],
-                "retrieval_candidate_times": [5, 20, 50, 100]
+                "retrieval_candidate_times": [5, 10, 20, 30, 50]
             }
         }
         self.dataset_path = args.dataset
