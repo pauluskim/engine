@@ -27,13 +27,15 @@ def mkdir_if_not_exist(path):
     if not Path(path).exists():
         os.makedirs(path)
 
+
 def timeit(func):
     @wraps(func)
     def timeit_wrapper(*args, **kwargs):
         start_time = time.perf_counter()
         result = func(*args, **kwargs)
         elapsed = (time.perf_counter() - start_time) * 1000
-        print(f"Function {func.__name__}{args} {kwargs} took {elapsed:.2f} ms")
+        # print(f"Function {func.__name__}{args} {kwargs} took {elapsed:.2f} ms")
+        print(f"Function {func.__name__} took {elapsed:.2f} ms")
         return result
     return timeit_wrapper
 
