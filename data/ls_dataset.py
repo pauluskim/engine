@@ -20,12 +20,21 @@ class LSDataset(Dataset):
 
         self.df = pd.read_parquet(fpath)
         self.df.drop(self.df[self.df['text'].isnull()].index, inplace=True)
-        self.df['text'] = self.df['text'].str.replace('$%^', params["delimiter"], regex=False).replace('!$%^', params["delimiter"], regex=False)
+        self.df = self.add_title_as_text()
+        self.df['text'] = (self.df['text'].str.replace('$%^', params["delimiter"], regex=False)
+                           .replace('!$%^', params["delimiter"], regex=False))
         self.section_weight = params["section_weight"]
 
         self.set_refined_df_by_grouping(params["grouping"])
 
         self.tokenizer = tokenizer
+
+    def add_title_as_text(self):
+        df_by_lec = self.df.groupby(["idx", "title"]).first().reset_index()
+        df_by_lec["text"] = df_by_lec["title"]
+        df_by_lec["section"] = "title"
+        return pd.concat([self.df, df_by_lec], ignore_index=True)
+
 
     def set_refined_df_by_grouping(self, fields):
         if fields is None:
