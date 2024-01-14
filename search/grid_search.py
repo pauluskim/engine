@@ -28,14 +28,22 @@ class GridSearch:
                          "jhgan/ko-sbert-sts"],
         """
         self.params = {
-            "st_model": ["jhgan/ko-sroberta-multitask"],
+            "st_model": ["jhgan/ko-sroberta-multitask", "jhgan/ko-sbert-sts", "snunlp/KR-SBERT-V40K-klueNLI-augSTS",
+                         "intfloat/multilingual-e5-large"],
             "dataset": {
                 "delimiter": [" "],
                 "grouping": [["idx", "title", "section"]],
                 "section_weight": [
                     {"강사소개": 0.1, "title": 1, "강의소개": 1, "인트로": 1},
+                    {"강사소개": 0.1, "title": 2, "강의소개": 1, "인트로": 1},
+                    {"강사소개": 0.1, "title": 1, "강의소개": 2, "인트로": 1},
+                    {"강사소개": 0.1, "title": 2, "강의소개": 2, "인트로": 1},
+                    {"강사소개": 0.1, "title": 1, "강의소개": 1, "인트로": 2},
+                    {"강사소개": 0.1, "title": 2, "강의소개": 1, "인트로": 2},
+                    {"강사소개": 0.1, "title": 1, "강의소개": 2, "인트로": 2},
+                    {"강사소개": 0.1, "title": 2, "강의소개": 2, "인트로": 2},
                 ],
-                "retrieval_candidate_times": [30]
+                "retrieval_candidate_times": [15, 30, 50]
             }
         }
         self.dataset_path = args.dataset
