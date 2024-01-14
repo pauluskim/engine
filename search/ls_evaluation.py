@@ -60,8 +60,6 @@ class LSEvaluation:
         search_result_detail_lst = []
         for _, row in self.cases.iterrows():
             query = row["query"]
-            if query == "시공":
-                pass
             retrieved_docs = ast.literal_eval(row["idx"])
 
             query_embedding = self.model.infer(query)
@@ -117,7 +115,7 @@ class LSEvaluation:
                 section_weights.append(section_weight)
 
             vectors = self.model.infer(texts).cpu()
-            normed_vectors = functional.normalize(vectors, p=2.0, dim=0)
+            normed_vectors = functional.normalize(vectors, p=2.0, dim=1)
             scores = torch.inner(normed_vectors, query_vector)
             weighted_scores = scores * torch.tensor(section_weights)
 

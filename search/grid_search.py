@@ -35,7 +35,7 @@ class GridSearch:
                 "section_weight": [
                     {"강사소개": 0.1, "title": 1, "강의소개": 1, "인트로": 1},
                 ],
-                "retrieval_candidate_times": [5, 10, 20, 30, 50]
+                "retrieval_candidate_times": [30]
             }
         }
         self.dataset_path = args.dataset
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     parser.add_argument("--index_root_path", type=str)
     parser.add_argument("--dataset", type=str)
     parser.add_argument("--index_type", type=str)
-    parser.add_argument("--skip_index", type=bool)
+    parser.add_argument("--skip_index", type=bool, default=False)
     args = parser.parse_args()
     gs = GridSearch(args)
     gs.explore()
