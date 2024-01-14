@@ -60,6 +60,8 @@ class LSEvaluation:
         search_result_detail_lst = []
         for _, row in self.cases.iterrows():
             query = row["query"]
+            if query == "시공":
+                pass
             retrieved_docs = ast.literal_eval(row["idx"])
 
             query_embedding = self.model.infer(query)

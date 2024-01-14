@@ -42,8 +42,9 @@ class GridSearch:
         self.cases = load_testcases(args.cases_path)
         self.index_root_path = args.index_root_path
         self.index_type = args.index_type
+        self.skip_index = args.skip_index
 
-    def vanilla_eval(self, model_name, dataset_param):
+    def vanilla_eval(self, model_name, dataset_param, skip_index=False):
 
         model = SentenceBert(model_name=model_name)
         dataset = LSDataset(self.dataset_path, dataset_param)
@@ -52,7 +53,8 @@ class GridSearch:
         iter_name = f"{model_name}_{dataset_param}"
         index_fname = f"{iter_name}.pth"
         index_fpath = os.path.join(self.index_root_path, index_fname)
-        inference.indexing(index_fpath)
+        if skip_index is False:
+            inference.indexing(index_fpath)
 
         evaluation = LSEvaluation(self.cases, model, dataset, dataset_param["retrieval_candidate_times"])
         score_lst, retrieved_docs_lst, expected_lec_detail_lst, search_result_detail_lst = evaluation.vanilla(index_fpath)
@@ -65,7 +67,7 @@ class GridSearch:
         evaluation.cases.to_csv(os.path.join(self.index_root_path, iter_result_name))
         return avg_score
 
-    def faiss_eval(self, model_name, dataset_param):
+    def faiss_eval(self, model_name, dataset_param, skip_index=False):
 
         model = SentenceBert(model_name=model_name)
         dataset = LSDataset(self.dataset_path, dataset_param)
@@ -74,7 +76,8 @@ class GridSearch:
         iter_name = f"{model_name}_{dataset_param}"
         index_fname = f"{iter_name}.index"
         index_fpath = os.path.join(self.index_root_path, index_fname)
-        inference.indexing(index_fpath)
+        if skip_index is False:
+            inference.indexing(index_fpath)
 
         evaluation = LSEvaluation(self.cases, model, dataset, dataset_param["retrieval_candidate_times"])
         score_lst, retrieved_docs_lst, expected_lec_detail_lst, search_result_detail_lst = evaluation.faiss(index_fpath)
@@ -95,9 +98,9 @@ class GridSearch:
             keys, values = zip(*dataset_params.items())
             for dataset_param in [dict(zip(keys, v)) for v in itertools.product(*values)]:
                 if self.index_type == "faiss":
-                    score = self.faiss_eval(model, dataset_param)
+                    score = self.faiss_eval(model, dataset_param, skip_index=self.skip_index)
                 else:
-                    score = self.vanilla_eval(model, dataset_param)
+                    score = self.vanilla_eval(model, dataset_param, skip_index=self.skip_index)
                 result_lst.append([str(score), f"{model}_{dataset_param}"])
 
         with open(os.path.join(self.index_root_path, "final_result.csv"), "w") as f:
@@ -111,6 +114,7 @@ if __name__ == "__main__":
     parser.add_argument("--index_root_path", type=str)
     parser.add_argument("--dataset", type=str)
     parser.add_argument("--index_type", type=str)
+    parser.add_argument("--skip_index", type=bool)
     args = parser.parse_args()
     gs = GridSearch(args)
     gs.explore()
