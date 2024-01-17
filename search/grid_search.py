@@ -28,8 +28,7 @@ class GridSearch:
                          "jhgan/ko-sbert-sts"],
         """
         self.params = {
-            "st_model": ["jhgan/ko-sroberta-multitask", "jhgan/ko-sbert-sts", "snunlp/KR-SBERT-V40K-klueNLI-augSTS",
-                         "intfloat/multilingual-e5-large"],
+            "st_model": ["intfloat/multilingual-e5-large"],
             "dataset": {
                 "delimiter": [" "],
                 "grouping": [["idx", "title", "section"]],
