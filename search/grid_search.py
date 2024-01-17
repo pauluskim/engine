@@ -65,16 +65,22 @@ class GridSearch:
         else:
             inference.indexing(index_fpath)
 
-        evaluation = LSEvaluation(self.cases, model, dataset, dataset_param["retrieval_candidate_times"])
-        score_lst, retrieved_docs_lst, expected_lec_detail_lst, search_result_detail_lst = evaluation.vanilla(index_fpath)
         iter_result_name = f"{iter_name}_vanilla_result.csv"
-        avg_score = 1.0 * sum(score_lst) / len(score_lst)
-        evaluation.cases['recall'] = score_lst
-        evaluation.cases['retrieved_docs'] = retrieved_docs_lst
-        evaluation.cases['expected_details'] = expected_lec_detail_lst
-        evaluation.cases['result_details'] = search_result_detail_lst
-        evaluation.cases.to_csv(os.path.join(self.index_root_path, iter_result_name))
-        return avg_score
+        iter_result_path = os.path.join(self.index_root_path, iter_result_name)
+        if skip_index and os.path.isfile(iter_result_path):
+            print("SKIP to evaluate: " + iter_result_name)
+            return "SKIP"
+        else:
+            evaluation = LSEvaluation(self.cases, model, dataset, dataset_param["retrieval_candidate_times"])
+            score_lst, retrieved_docs_lst, expected_lec_detail_lst, search_result_detail_lst = evaluation.vanilla(index_fpath)
+            avg_score = 1.0 * sum(score_lst) / len(score_lst)
+            evaluation.cases['recall'] = score_lst
+            evaluation.cases['retrieved_docs'] = retrieved_docs_lst
+            evaluation.cases['expected_details'] = expected_lec_detail_lst
+            evaluation.cases['result_details'] = search_result_detail_lst
+            evaluation.cases['avg_score'] = avg_score
+            evaluation.cases.to_csv(iter_result_path)
+            return avg_score
 
     def faiss_eval(self, model_name, dataset_param, skip_index=False):
 
