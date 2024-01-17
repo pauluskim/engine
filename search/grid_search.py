@@ -61,7 +61,9 @@ class GridSearch:
         iter_name = f"{model_name}_{dataset_param}"
         index_fname = f"{iter_name}.pth"
         index_fpath = os.path.join(self.index_root_path, index_fname)
-        if skip_index is False:
+        if skip_index and os.path.isfile(index_fpath):
+            print("SKIP to index: " + index_fpath)
+        else:
             inference.indexing(index_fpath)
 
         evaluation = LSEvaluation(self.cases, model, dataset, dataset_param["retrieval_candidate_times"])
