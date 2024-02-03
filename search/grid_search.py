@@ -3,6 +3,7 @@ import itertools
 import os
 import pdb
 
+import pandas as pd
 
 from data.ls_dataset import LSDataset
 from data.utils import load_testcases
@@ -15,6 +16,20 @@ from search.ls_evaluation import LSEvaluation
 class GridSearch:
     def __init__(self, args):
         """
+
+            기본적으로 EBR은 2 tower 모델로 가는게 좋음
+            https://medium.com/better-ml/embedding-learning-for-retrieval-29af1c9a1e65
+            query tower
+            document tower를 따로 가져가고, feed log, click 로그와 같은 걸로 학습시키는것이 좋음
+            하지만 우리는 해당 데이터가 없기때문에, 오픈되어있는 범용 LM을 사용해서 EBR 구현을 보일 것임
+
+            RAG(필요 데이터를 NN로 찾아서 프롬프트에 같이 넣어주는것)는 아니지만, RAG와 비슷하게 chunk를 임베딩해서 검색에 활용
+
+            Stratified sampling에 대해서도 언급해야하고
+
+            Retrieve 단계에선 Recall이 중요하다는것을 precision을 보이면서 해결할것
+            검색은 retreive - rerank 단계로 구성되어있음
+
             "delimiter": [" ", "\n"], # newline, space 차이가 없음
             "grouping": [None, ["idx", "title", "section"], ["idx", "title"]],  idx, title, section이 가장 좋음
 
@@ -69,7 +84,8 @@ class GridSearch:
         iter_result_path = os.path.join(self.index_root_path, iter_result_name)
         if skip_index and os.path.isfile(iter_result_path):
             print("SKIP to evaluate: " + iter_result_name)
-            return "SKIP"
+            df = pd.read_csv(iter_result_path)
+            return df["avg_score"][0]
         else:
             evaluation = LSEvaluation(self.cases, model, dataset, dataset_param["retrieval_candidate_times"])
             score_lst, retrieved_docs_lst, expected_lec_detail_lst, search_result_detail_lst = evaluation.vanilla(index_fpath)

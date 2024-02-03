@@ -94,6 +94,10 @@ class LSEvaluation:
         search_context = defaultdict(list)
         for doc_id, score in zip(doc_ids, scores):
             text_id, lec_id, lec_title, text, section, section_weight = self.dataset[doc_id]
+            # 근데 여기서, section 수에 따른 ranking에 왜곡이 있을 수 있음
+            # 가령 A라는 강의는 0.7의 section이 5개
+            # B라는 강의는 0.8의 section이 3개 라고 하면 현재 논리에서는 A가 더 높은 점수를 차지함. 따라서 section의 제한을 거는게 필요할텐데
+            # retrieve 단계에서는 크게 문제될것은 아님. 이건 reranking 단에서 해결해야할 문제로 보임
             lec_scores[lec_id] += score * section_weight
             search_context[lec_id].append([lec_title, text, section, score * section_weight])
 
