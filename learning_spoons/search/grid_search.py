@@ -87,7 +87,6 @@ class GridSearch:
             return avg_score
 
     def eval_by_faiss_index(self, model_name, dataset_param):
-
         model = SentenceBert(model_name=model_name)
         dataset = LSDataset(self.dataset_path, dataset_param)
 

@@ -35,8 +35,8 @@ class LSEvaluation:
 
             query_vector = self.model.infer(query).cpu()
             # expand dim for query vector
-            query_vectory = np.expand_dims(query_vector, axis=0)
-            scores, corpus_ids = index.search(query_vectory, len(retrieved_docs) * self.retrieval_candidate_times)
+            query_vector = np.expand_dims(query_vector, axis=0)
+            scores, corpus_ids = index.search(query_vector, len(retrieved_docs) * self.retrieval_candidate_times)
 
             ranked_lectures, search_context = self.postprocess(corpus_ids[0], scores[0])
             ranked_lecture_idxs = [doc_idx for doc_idx, score in ranked_lectures]
