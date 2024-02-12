@@ -135,7 +135,7 @@ class GridSearch:
                     score = self.eval_by_vanilla_index(dataset_param)
                 result_lst.append([str(score), f"{model_name}_{dataset_param}"])
 
-            with open(os.path.join(self.index_root_path, model_name + "_final_result.csv"), "w") as f:
+            with open(os.path.join(self.index_root_path, model_name + f"_{self.index_type}_final_result.csv"), "w") as f:
                 for result in result_lst:
                     f.write("\t".join(result) + "\n")
 
