@@ -121,8 +121,8 @@ class GridSearch:
 
     def explore(self):
         dataset_params = self.params["dataset"]
-        result_lst = []
         for model_name in self.params["st_model"]:
+            result_lst = []
             print("MODEL: ", model_name)
             self.model_name = model_name
             self.model = SentenceBert(model_name=self.model_name)

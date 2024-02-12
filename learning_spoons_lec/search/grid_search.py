@@ -85,28 +85,38 @@ class GridSearch:
             evaluation.cases.to_csv(iter_result_path)
             return avg_score
 
-    def eval_by_faiss_index(self, model_name, dataset_param):
-
-        model = SentenceBert(model_name=model_name)
+    def eval_by_faiss_index(self, dataset_param):
         dataset = LSDataset(self.dataset_path, dataset_param)
+        inference = LSFaiss(self.model, dataset, self.batch_size)
 
-        inference = LSFaiss(model, dataset, batch_size=16)
-        iter_name = f"{model_name}_{dataset_param}"
+        iter_name = f"{self.model_name}_{dataset_param}"
         index_fname = f"{iter_name}.index"
         index_fpath = os.path.join(self.index_root_path, index_fname)
-        if self.skip_index is False:
+
+        if self.skip_index and os.path.isfile(index_fpath):
+            print("SKIP to index: " + index_fpath)
+        else:
             inference.indexing(index_fpath)
 
-        evaluation = LSEvaluation(self.cases, model, dataset, dataset_param["retrieval_candidate_times"])
-        score_lst, retrieved_docs_lst, expected_lec_detail_lst, search_result_detail_lst = evaluation.faiss(index_fpath)
-        iter_result_name = f"{iter_name}_result.csv"
-        avg_score = 1.0 * sum(score_lst) / len(score_lst)
-        evaluation.cases['recall'] = score_lst
-        evaluation.cases['retrieved_docs'] = retrieved_docs_lst
-        evaluation.cases['expected_details'] = expected_lec_detail_lst
-        evaluation.cases['result_details'] = search_result_detail_lst
-        evaluation.cases.to_csv(os.path.join(self.index_root_path, iter_result_name))
-        return avg_score
+        iter_result_name = f"{iter_name}_faiss_result.csv"
+        iter_result_path = os.path.join(self.index_root_path, iter_result_name)
+
+        if self.skip_index and os.path.isfile(iter_result_path):
+            print("SKIP to evaluate: " + iter_result_name)
+            df = pd.read_csv(iter_result_path)
+            return df["avg_score"][0]
+        else:
+            evaluation = LSEvaluation(self.cases, self.model, dataset, dataset_param["retrieval_candidate_times"])
+            score_lst, retrieved_docs_lst, expected_lec_detail_lst, search_result_detail_lst = evaluation.faiss(index_fpath)
+            iter_result_name = f"{iter_name}_result.csv"
+            avg_score = 1.0 * sum(score_lst) / len(score_lst)
+            evaluation.cases['recall'] = score_lst
+            evaluation.cases['retrieved_docs'] = retrieved_docs_lst
+            evaluation.cases['expected_details'] = expected_lec_detail_lst
+            evaluation.cases['result_details'] = search_result_detail_lst
+            evaluation.cases['avg_score'] = avg_score
+            evaluation.cases.to_csv(os.path.join(self.index_root_path, iter_result_name))
+            return avg_score
 
     def explore(self):
         dataset_params = self.params["dataset"]
