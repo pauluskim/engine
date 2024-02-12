@@ -15,14 +15,15 @@ from learning_spoons.search.ls_evaluation import LSEvaluation
 class GridSearch:
     def __init__(self, args):
         self.params = {
-            "st_model": ["jhgan/ko-sroberta-multitask"],
+            "st_model": ["intfloat/multilingual-e5-large"],
             "dataset": {
                 "delimiter": [" "],
-                "grouping": [None, ["idx", "title", "section"], ["idx", "title"]],
+                "grouping": [["idx", "title", "section"]],
                 "section_weight": [
                     {"강사소개": 0.1, "title": 1, "강의소개": 1, "인트로": 1},
                 ],
-                "retrieval_candidate_times": [15]
+                "retrieval_candidate_times": [30],
+                "faiss_nprob_ratio": [1.0, 0.5]
             }
         }
         # self.params = {
@@ -88,7 +89,7 @@ class GridSearch:
 
     def eval_by_faiss_index(self, dataset_param):
         dataset = LSDataset(self.dataset_path, dataset_param)
-        inference = LSFaiss(self.model, dataset, self.batch_size)
+        inference = LSFaiss(self.model, dataset, self.batch_size, dataset_param.get("faiss_nprob_ratio", 1.0))
 
         iter_name = f"{self.model_name}_{dataset_param}"
         index_fname = f"{iter_name}.index"

@@ -15,7 +15,7 @@ from model.sentence_bert import SentenceBert
 
 
 class LSFaiss(IndexInterface):
-    def __init__(self, model, dataset, batch_size, nprob=50):
+    def __init__(self, model, dataset, batch_size, nprob_ratio=1.0):
         super(LSFaiss, self).__init__(model, dataset, batch_size)
 
         # This model's max_seq_length = 128
@@ -41,7 +41,7 @@ class LSFaiss(IndexInterface):
         self.index = faiss.IndexIVFFlat(quantizer, vec_dimension, n_clusters, faiss.METRIC_INNER_PRODUCT)
         # Number of clusters to explorer at search time. We will search for nearest neighbors in 3 clusters.
 
-        self.index.nprobe = nprob
+        self.index.nprobe = int(n_clusters * nprob_ratio)
 
     def get_vector_dimenstion(self):
         _, _, context, _, _ = next(iter(self.data_loader))
