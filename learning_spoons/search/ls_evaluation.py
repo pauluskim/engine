@@ -5,6 +5,7 @@ from collections import Counter, defaultdict
 
 import numpy as np
 from faiss import read_index
+from tqdm import tqdm
 
 from data.ls_dataset import LSDataset
 from data.utils import load_args
@@ -29,7 +30,7 @@ class LSEvaluation:
         retrieved_docs_lst = []
         expected_lec_detail_lst = []
         search_result_detail_lst = []
-        for _, row in self.cases.iterrows():
+        for _, row in tqdm(self.cases.iterrows(), desc="Evaluation"):
             query = row["query"]
             retrieved_docs = ast.literal_eval(row["idx"])
 
@@ -57,7 +58,7 @@ class LSEvaluation:
         retrieved_docs_lst = []
         expected_lec_detail_lst = []
         search_result_detail_lst = []
-        for _, row in self.cases.iterrows():
+        for _, row in tqdm(self.cases.iterrows(), desc="Evaluation"):
             query = row["query"]
             target_docs = ast.literal_eval(row["idx"])
 
