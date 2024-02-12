@@ -1,6 +1,6 @@
 from torch.utils.data import DataLoader
 
-# 다룸
+
 class IndexInterface:
     def __init__(self, model, dataset, batch_size):
         self.model = model
