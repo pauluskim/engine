@@ -4,6 +4,7 @@ import math
 import faiss
 import torch
 from faiss import write_index
+from torch.nn import functional
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -15,7 +16,7 @@ from model.sentence_bert import SentenceBert
 
 class LSFaiss(IndexInterface):
     def __init__(self, model, dataset, batch_size, nprob=50):
-        super(model, dataset, batch_size)
+        super(LSFaiss, self).__init__(model, dataset, batch_size)
 
         # This model's max_seq_length = 128
 
@@ -28,7 +29,7 @@ class LSFaiss(IndexInterface):
         # https://stackoverflow.com/questions/75901231/max-seq-length-for-transformer-sentence-bert
 
         # Number of clusters used for faiss. Select a value 4*sqrt(N) to 16*sqrt(N) - https://github.com/facebookresearch/faiss/wiki/Guidelines-to-choose-an-index
-        # TODO: But the training vectors should be more than 30 * n_clusters.
+        # But the training vectors should be more than 30 * n_clusters.
         n_clusters = int(min(4 * math.sqrt(self.data_size), self.data_size / 30 - 1))
 
         vec_dimension = self.get_vector_dimenstion()
@@ -43,23 +44,23 @@ class LSFaiss(IndexInterface):
         self.index.nprobe = nprob
 
     def get_vector_dimenstion(self):
-        _, _, _, context, _, _ = next(iter(self.data_loader))
+        _, _, context, _, _ = next(iter(self.data_loader))
         return self.model.infer(context).size()[1]
 
     def indexing(self, output_path):
         vector_lst = []
 
         counter = 0
-        for doc_ids, lec_ids, lec_titles, docs, section, weights in tqdm(self.data_loader, desc="Index vectors"):
+        for lec_ids, lec_titles, docs, section, weights in tqdm(self.data_loader, desc="Index vectors"):
             # Need to get vector
-            # TODO: NEED TO VECTORIZE TITLE AS WELL.
-            vector_lst.append(self.model.infer(docs))
+            doc_vectors = functional.normalize(self.model.infer(docs), p=2.0, dim=1)
+            vector_lst.append(doc_vectors)
             counter += 1
 
         # Need to aggregate vectors
         vectors = torch.cat(vector_lst, dim=0).cpu().numpy()
         # Need to index
-        faiss.normalize_L2(vectors)
+
         self.index.train(vectors)
         self.index.add(vectors)
 
