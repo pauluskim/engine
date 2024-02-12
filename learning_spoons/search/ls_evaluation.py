@@ -109,8 +109,6 @@ class LSEvaluation:
         for lec_id in target_docs:
             docs = self.dataset.get_by_lec_id(lec_id)
 
-            lec_titles = []
-            sections = []
             texts = []
             section_weights = []
             for doc in docs:
@@ -124,7 +122,12 @@ class LSEvaluation:
             scores = torch.inner(normed_vectors, query_vector)
             weighted_scores = scores * torch.tensor(section_weights)
 
-            docs.append(weighted_scores)
+            for i in range(len(docs)):
+                doc = docs[i]
+                weighted_score = weighted_scores[i]
+                doc.append(weighted_score)
+                docs[i] = doc
+
             lec_info_dict[lec_id] = docs
         return lec_info_dict  
 
