@@ -75,7 +75,7 @@ class LSEvaluation:
                                               len(cos_scores)))
 
             candidates, search_context = self.postprocess(doc_idxs.cpu(), scores.cpu())
-            candidates_idxs = [doc_idx for doc_idx, score in candidates]
+            candidates_idxs = [lec_idx for lec_idx, score in candidates]
             candidates_idxs = candidates_idxs[:max(len(target_docs), self.retrieval_candidate_times)]
 
             score = self.recall(target_docs, candidates_idxs)

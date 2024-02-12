@@ -75,7 +75,7 @@ class LSEvaluation:
                                               len(cos_scores)))
 
             candidates, search_context = self.postprocess(doc_idxs.cpu(), scores.cpu())
-            candidates_idxs = [doc_idx for doc_idx, score in candidates]
+            candidates_idxs = [lec_idx for lec_idx, score in candidates]
             candidates_idxs = candidates_idxs[:max(len(target_docs), self.retrieval_candidate_times)]
 
             score = self.recall(target_docs, candidates_idxs)
@@ -91,26 +91,34 @@ class LSEvaluation:
 
 
     def postprocess(self, doc_ids, scores):
+        """
+        lecture의 최종 스코어를 계산
+
+        lecture_score = sum(weighted_doc_score)
+        weighted_doc_score = doc_score * doc_weight(section_weight)
+
+        return candidates, search_context
+
+        # Caveat
+        section 수에 따른 ranking에 왜곡이 있을 수 있음
+        A라는 강의는 0.7의 section이 5개
+        B라는 강의는 0.8의 section이 3개 라고 하면
+        현재 논리에서는 A가 더 높은 점수를 차지함. 따라서 section의 제한을 거는게 필요
+        retrieve 단계에서는 크게 문제될것은 아님. 이건 reranking 단에서 해결해야할 문제
+        """
         lec_scores = Counter()
         search_context = defaultdict(list)
         for doc_id, score in zip(doc_ids, scores):
-            text_id, lec_id, lec_title, text, section, section_weight = self.dataset[doc_id]
-            # 근데 여기서, section 수에 따른 ranking에 왜곡이 있을 수 있음
-            # 가령 A라는 강의는 0.7의 section이 5개
-            # B라는 강의는 0.8의 section이 3개 라고 하면 현재 논리에서는 A가 더 높은 점수를 차지함. 따라서 section의 제한을 거는게 필요할텐데
-            # retrieve 단계에서는 크게 문제될것은 아님. 이건 reranking 단에서 해결해야할 문제로 보임
-            lec_scores[lec_id] += score * section_weight
-            search_context[lec_id].append([lec_title, text, section, score * section_weight])
+            pass
 
-        return sorted(lec_scores.items(), key=lambda item: -item[1]), search_context
+    def recall(self, expected_lst, actual_lst):
+        pass
 
     def get_search_context_for_target_lec(self, query_vector, target_docs):
         lec_info_dict = dict()
         for lec_id in target_docs:
             docs = self.dataset.get_by_lec_id(lec_id)
 
-            lec_titles = []
-            sections = []
             texts = []
             section_weights = []
             for doc in docs:
@@ -124,9 +132,14 @@ class LSEvaluation:
             scores = torch.inner(normed_vectors, query_vector)
             weighted_scores = scores * torch.tensor(section_weights)
 
-            docs.append(weighted_scores)
+            for i in range(len(docs)):
+                doc = docs[i]
+                weighted_score = weighted_scores[i]
+                doc.append(weighted_score)
+                docs[i] = doc
+
             lec_info_dict[lec_id] = docs
-        return lec_info_dict  
+        return lec_info_dict
 
     def get_search_context_for_search_result(self, ranked_lectures, search_context):
         lec_info_dict = dict()
@@ -136,16 +149,6 @@ class LSEvaluation:
                 lec_info.append([lec_title, section, text, weighted_score])
             lec_info_dict[lec_id] = lec_info
         return lec_info_dict
-
-    def recall(self, expected_lst, actual_lst):
-        actual_set = set(actual_lst)
-        recall_cnt = 0
-        for expected in expected_lst:
-            if expected in actual_set:
-                recall_cnt += 1
-
-        return 1.0 * recall_cnt / len(expected_lst)
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

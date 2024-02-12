@@ -13,7 +13,7 @@ class LSVanilla(IndexInterface):
     def indexing(self, output_path):
         vector_lst = []
         counter = 0
-        for doc_ids, lec_ids, lec_titles, docs, section, weights in tqdm(self.data_loader, desc="Index vectors"):
+        for lec_ids, lec_titles, docs, section, weights in tqdm(self.data_loader, desc="Index vectors"):
             # need to infer and aggregate vectors
             doc_vectors = functional.normalize(self.model.infer(docs), p=2.0, dim =1)
             vector_lst.append(doc_vectors)

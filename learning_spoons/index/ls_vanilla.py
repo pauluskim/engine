@@ -1,15 +1,12 @@
 import argparse
-import pdb
 
 import torch
 from torch.nn import functional
-from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from data.rating_dataset import RatingDataset
 from data.utils import load_args, mkdir_if_not_exist
 from index.IndexInterface import IndexInterface
-from model.sentence_bert import SentenceBert
 
 
 class LSVanilla(IndexInterface):
@@ -21,8 +18,7 @@ class LSVanilla(IndexInterface):
             doc_vectors = functional.normalize(self.model.infer(docs), p=2.0, dim =1)
             vector_lst.append(doc_vectors)
             counter += 1
-            if counter == 10:
-                break
+
 
         # need to convert from list to tensor
         vectors = torch.cat(vector_lst, dim=0)
@@ -38,6 +34,6 @@ if __name__ == "__main__":
     args = load_args(config_path)
     rating_dataset = RatingDataset(args["rating_dataset"])
 
-    inference = Vanilla(rating_dataset, batch_size=64)
+    inference = LSVanilla(rating_dataset, batch_size=64)
     index_fpath = args["index_output"]["vanilla"]
     inference.indexing(index_fpath)

@@ -19,7 +19,7 @@ class LSDataset(Dataset):
 
         # 1. text field null check
         # 2. text delimiter sets
-        # 3. section weight 설정
+        # 3. set section weight
 
         # 4. Text chunk GroupBy
         self.set_refined_df_by_grouping(params["grouping"])
@@ -31,6 +31,12 @@ class LSDataset(Dataset):
     def add_title_as_text(self):
         """
         "title" field에 있는 title을 기존 data format에 맞춰서 reformat
+        """
+        pass
+
+    def set_section_weight(self, section_weight_map):
+        """
+        section에 맞춰 section weight 설정
         """
         pass
 
@@ -59,6 +65,5 @@ class LSDataset(Dataset):
         pass
 
     def get_by_lec_id(self, lec_id):
-        rows = self.refined_df[self.refined_df["idx"] == lec_id].values.tolist()
-        return [row + [self.section_weight.get(row[2], 1)] for row in rows]
+        pass
 
