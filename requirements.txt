@@ -3,6 +3,9 @@ torch
 PyYAML
 faiss-cpu
 hnswlib
+txtai
+onnx
+onnxruntime
 # tritonclient\[all\]
 
 sentence-transformers
