@@ -7,6 +7,7 @@ import pandas as pd
 from learning_spoons.data.ls_dataset import LSDataset
 from learning_spoons.data.utils import load_testcases
 from learning_spoons.index.ls_faiss_index import LSFaiss
+from learning_spoons.index.ls_hnsw import LSHnsw
 from learning_spoons.index.ls_vanilla import LSVanilla
 from learning_spoons.model.sentence_bert import SentenceBert
 from learning_spoons.search.ls_evaluation import LSEvaluation
@@ -23,7 +24,8 @@ class GridSearch:
                     {"강사소개": 0.1, "title": 1, "강의소개": 1, "인트로": 1},
                 ],
                 "retrieval_candidate_times": [30],
-                "faiss_nprob_ratio": [1.0, 0.5]
+                "faiss_nprob_ratio": [1.0, 0.5],
+                "M": [48, 64]
             }
         }
         # self.params = {
@@ -76,16 +78,7 @@ class GridSearch:
             return df["avg_score"][0]
         else:
             evaluation = LSEvaluation(self.cases, self.model, dataset, dataset_param["retrieval_candidate_times"])
-            score_lst, retrieved_docs_lst, expected_lec_detail_lst, search_result_detail_lst = (
-                evaluation.vanilla(index_fpath))
-            avg_score = 1.0 * sum(score_lst) / len(score_lst)
-            evaluation.cases['recall'] = score_lst
-            evaluation.cases['retrieved_docs'] = retrieved_docs_lst
-            evaluation.cases['expected_details'] = expected_lec_detail_lst
-            evaluation.cases['result_details'] = search_result_detail_lst
-            evaluation.cases['avg_score'] = avg_score
-            evaluation.cases.to_csv(iter_result_path)
-            return avg_score
+            return evaluation.vanilla(index_fpath, iter_result_path)
 
     def eval_by_faiss_index(self, dataset_param):
         dataset = LSDataset(self.dataset_path, dataset_param)
@@ -109,16 +102,32 @@ class GridSearch:
             return df["avg_score"][0]
         else:
             evaluation = LSEvaluation(self.cases, self.model, dataset, dataset_param["retrieval_candidate_times"])
-            score_lst, retrieved_docs_lst, expected_lec_detail_lst, search_result_detail_lst = evaluation.faiss(index_fpath)
-            iter_result_name = f"{iter_name}_result.csv"
-            avg_score = 1.0 * sum(score_lst) / len(score_lst)
-            evaluation.cases['recall'] = score_lst
-            evaluation.cases['retrieved_docs'] = retrieved_docs_lst
-            evaluation.cases['expected_details'] = expected_lec_detail_lst
-            evaluation.cases['result_details'] = search_result_detail_lst
-            evaluation.cases['avg_score'] = avg_score
-            evaluation.cases.to_csv(os.path.join(self.index_root_path, iter_result_name))
-            return avg_score
+            return evaluation.faiss(index_fpath, iter_result_path)
+
+    def eval_by_hnsw_index(self, dataset_param):
+        dataset = LSDataset(self.dataset_path, dataset_param)
+        k_cap = 5 * dataset_param["retrieval_candidate_times"]
+        inference = LSHnsw(self.model, dataset, self.batch_size, k_cap, dataset_param.get("M", 48))
+
+        iter_name = f"{self.model_name}_{dataset_param}"
+        index_fname = f"{iter_name}.pickle"
+        index_fpath = os.path.join(self.index_root_path, index_fname)
+
+        if self.skip_index and os.path.isfile(index_fpath):
+            print("SKIP to index: " + index_fpath)
+        else:
+            inference.indexing(index_fpath)
+
+        iter_result_name = f"{iter_name}_hnsw_result.csv"
+        iter_result_path = os.path.join(self.index_root_path, iter_result_name)
+
+        if self.skip_index and os.path.isfile(iter_result_path):
+            print("SKIP to evaluate: " + iter_result_name)
+            df = pd.read_csv(iter_result_path)
+            return df["avg_score"][0]
+        else:
+            evaluation = LSEvaluation(self.cases, self.model, dataset, dataset_param["retrieval_candidate_times"])
+            return evaluation.hnsw(index_fpath, iter_result_path)
 
     def explore(self):
         dataset_params = self.params["dataset"]
@@ -132,6 +141,8 @@ class GridSearch:
             for dataset_param in [dict(zip(keys, v)) for v in itertools.product(*values)]:
                 if self.index_type == "faiss":
                     score = self.eval_by_faiss_index(dataset_param)
+                elif self.index_type == "hnsw":
+                    score = self.eval_by_hnsw_index(dataset_param)
                 else:
                     score = self.eval_by_vanilla_index(dataset_param)
                 result_lst.append([str(score), f"{model_name}_{dataset_param}"])

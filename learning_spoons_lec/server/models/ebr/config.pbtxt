@@ -1,0 +1,44 @@
+name: "ebr"
+max_batch_size: 1
+backend: "python"
+input [
+    {
+        name: "query"
+        data_type: TYPE_STRING
+        dims: [ 1 ]
+    }
+]
+output [
+    {
+        name: "reviews"
+        data_type: TYPE_STRING
+        dims: [ 1 ]
+    },
+    {
+        name: "dists"
+        data_type: TYPE_FP32
+        dims: [ 1 ]
+    }
+]
+
+instance_group [
+    {
+        count: 1
+        kind: KIND_CPU
+    }
+]
+
+parameters: [
+    {
+        key: "INDEX",
+        value: {string_value: "faiss_rating.index"}
+    },
+    {
+        key: "IDX2REVIEW",
+        value: {string_value: "ratings.txt"}
+    },
+    {
+        key: "STMODEL",
+        value: {string_value: "ST"}
+    }
+]
