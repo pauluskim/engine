@@ -26,8 +26,8 @@ class LSEvaluation:
         self.retrieval_candidate_times = retrieval_candidate_times
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    def hnsw(self, index, output_path):
-        with open(index, "rb") as f:
+    def hnsw(self, index_path, output_path):
+        with open(index_path, "rb") as f:
             corpus_embeddings = pickle.load(f)
 
         score_lst = []
@@ -67,8 +67,8 @@ class LSEvaluation:
                          avg_score)
         return avg_score
 
-    def faiss(self, index, output_path):
-        index = read_index(index)
+    def faiss(self, index_path, output_path):
+        index = read_index(index_path)
         score_lst = []
         retrieved_docs_lst = []
         expected_lec_detail_lst = []
@@ -101,8 +101,8 @@ class LSEvaluation:
         self.save_as_csv(output_path, score_lst, retrieved_docs_lst, expected_lec_detail_lst, search_result_detail_lst,
                          avg_score)
         return avg_score
-    def vanilla(self, index, output_path):
-        corpus_embeddings = torch.load(index, map_location=torch.device(self.device))
+    def vanilla(self, index_path, output_path):
+        corpus_embeddings = torch.load(index_path, map_location=torch.device(self.device))
         score_lst = []
         retrieved_docs_lst = []
         expected_lec_detail_lst = []
