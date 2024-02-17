@@ -6,19 +6,17 @@ import numpy as np
 import torch
 from faiss import write_index, read_index
 from torch.nn import functional
-from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from data.ls_dataset import LSDataset
 from data.utils import load_args, mkdir_if_not_exist
-from index.IndexInterface import IndexInterface
+from learning_spoons.index.IndexInterface import IndexInterface
 from model.sentence_bert import SentenceBert
 
 
 class LSFaiss(IndexInterface):
-    def __init__(self, model, dataset, batch_size, nprob_ratio=1.0):
-        super(LSFaiss, self).__init__(model, dataset, batch_size)
-
+    def prepare_index(self, dataset, batch_size, nprob_ratio=1.0):
+        super(LSFaiss, self).prepare_index(dataset, batch_size)
         # This model's max_seq_length = 128
 
         # That means, the position embedding layer of the transformers has 512 weights,

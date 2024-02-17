@@ -53,18 +53,21 @@ class GridSearch:
                 iter_name = f"{self.model_name}_{dataset_param}"
                 k = dataset_param["retrieval_candidate_times"]
                 if self.index_type == "faiss":
-                    index = LSFaiss(self.model, dataset, self.batch_size, dataset_param.get("faiss_nprob_ratio", 1.0))
+                    index = LSFaiss(self.model)
+                    index.prepare_index(dataset, self.batch_size, dataset_param.get("faiss_nprob_ratio", 1.0))
                     index_path = os.path.join(self.index_root_path, f"{iter_name}.index")
                     result_path = os.path.join(self.index_root_path, f"{iter_name}_faiss_result.csv")
                     score = self.eval(index, dataset, index_path, result_path, k)
                 elif self.index_type == "hnsw":
                     # TODO: 5 to 1 for k
-                    index = LSHnsw(self.model, dataset, self.batch_size, 5 * k, dataset_param.get("M", 48))
+                    index = LSHnsw(self.model)
+                    index.prepare_index(dataset, self.batch_size, 5 * k, dataset_param.get("M", 48))
                     index_path = os.path.join(self.index_root_path, f"{iter_name}.pickle")
                     result_path = os.path.join(self.index_root_path, f"{iter_name}_hnsw_result.csv")
                     score = self.eval(index, dataset, index_path, result_path, k)
                 else:
-                    index = LSVanilla(self.model, dataset, self.batch_size)
+                    index = LSVanilla(self.model)
+                    index.prepare_index(dataset, self.batch_size)
                     index_path = os.path.join(self.index_root_path, f"{iter_name}.pth")
                     result_path = os.path.join(self.index_root_path, f"{iter_name}_vanilla_result.csv")
                     score = self.eval(index, dataset, index_path, result_path, k)

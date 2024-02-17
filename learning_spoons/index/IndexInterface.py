@@ -2,8 +2,10 @@ from torch.utils.data import DataLoader
 
 
 class IndexInterface:
-    def __init__(self, model, dataset, batch_size):
+    def __init__(self, model):
         self.model = model
+
+    def prepare_index(self, dataset, batch_size):
         self.data_loader = DataLoader(dataset, batch_size=batch_size)
         self.data_size = len(dataset)
 

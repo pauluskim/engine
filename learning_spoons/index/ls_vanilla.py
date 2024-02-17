@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from data.rating_dataset import RatingDataset
 from data.utils import load_args, mkdir_if_not_exist
-from index.IndexInterface import IndexInterface
+from learning_spoons.index.IndexInterface import IndexInterface
 
 
 class LSVanilla(IndexInterface):
