@@ -94,6 +94,7 @@ class GridSearch:
 
     def eval_by_hnsw_index(self, dataset_param):
         dataset = LSDataset(self.dataset_path, dataset_param)
+        # TODO: 5 to 1.
         k_cap = 5 * dataset_param["retrieval_candidate_times"]
         inference = LSHnsw(self.model, dataset, self.batch_size, k_cap, dataset_param.get("M", 48))
 
