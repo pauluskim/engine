@@ -5,7 +5,7 @@ import os
 import pandas as pd
 
 from learning_spoons.data.ls_dataset import LSDataset
-from learning_spoons.data.utils import load_testcases
+from learning_spoons.data.utils import load_testcases, load_args
 from learning_spoons.index.ls_faiss_index import LSFaiss
 from learning_spoons.index.ls_hnsw import LSHnsw
 from learning_spoons.index.ls_vanilla import LSVanilla
@@ -15,19 +15,6 @@ from learning_spoons.search.ls_evaluation import LSEvaluation
 
 class GridSearch:
     def __init__(self, args):
-        self.params = {
-            "st_model": ["intfloat/multilingual-e5-large"],
-            "dataset": {
-                "delimiter": [" "],
-                "grouping": [["idx", "title", "section"]],
-                "section_weight": [
-                    {"강사소개": 0.1, "title": 1, "강의소개": 1, "인트로": 1},
-                ],
-                "retrieval_candidate_times": [30],
-                "faiss_nprob_ratio": [1.0, 0.5],
-                "M": [48, 64]
-            }
-        }
         # self.params = {
         #     "st_model": ["jhgan/ko-sroberta-multitask",
         #                  "snunlp/KR-SBERT-V40K-klueNLI-augSTS",
@@ -50,8 +37,9 @@ class GridSearch:
         #     }
         # }
         self.dataset_path = args.dataset_path
-        self.index_root_path = args.index_root_path
         self.index_type = args.index_type
+        self.params = load_args(args.grid_param_path)
+        self.index_root_path = args.index_root_path
         self.batch_size = 16
         self.skip_index = args.skip_index
         self.cases = load_testcases(args.cases_path)
@@ -155,6 +143,7 @@ class GridSearch:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--cases_path", type=str)
+    parser.add_argument("--grid_param_path", type=str)
     parser.add_argument("--index_root_path", type=str)
     parser.add_argument("--dataset_path", type=str)
     parser.add_argument("--index_type", type=str)
