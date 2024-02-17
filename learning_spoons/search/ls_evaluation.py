@@ -36,24 +36,28 @@ class LSEvaluation:
         search_result_detail_lst = []
         for _, row in tqdm(self.cases.iterrows(), desc="Evaluation"):
             query = row["query"]
-            retrieved_docs = ast.literal_eval(row["idx"])
+            target_docs = ast.literal_eval(row["idx"])
 
             query_vector = self.model.infer(query).cpu()
             # expand dim for query vector
             corpus_ids, distances = corpus_embeddings.knn_query(query_vector,
-                                                             k=len(retrieved_docs) * self.retrieval_candidate_times)
+                                                             k=min(
+                                                                 max(len(target_docs), self.retrieval_candidate_times * 2),
+                                                                 len(self.dataset)
+                                                             )
+                                                                )
 
             scores = 1 / (1 +distances[0])
             # https://stats.stackexchange.com/a/158285
             ranked_lectures, search_context = self.postprocess(corpus_ids[0], scores)
             ranked_lecture_idxs = [doc_idx for doc_idx, score in ranked_lectures]
-            ranked_lecture_idxs = ranked_lecture_idxs[:len(retrieved_docs) * 4]
+            ranked_lecture_idxs = ranked_lecture_idxs[:max(len(target_docs), self.retrieval_candidate_times)]
 
-            score = self.recall(retrieved_docs, ranked_lecture_idxs)
+            score = self.recall(target_docs, ranked_lecture_idxs)
             score_lst.append(score)
             retrieved_docs_lst.append(ranked_lecture_idxs)
 
-            expected_lec_details = self.get_search_context_for_target_lec(query_vector, retrieved_docs)
+            expected_lec_details = self.get_search_context_for_target_lec(query_vector, target_docs)
             search_result_details = self.get_search_context_for_search_result(ranked_lectures, search_context)
             expected_lec_detail_lst.append(expected_lec_details)
             search_result_detail_lst.append(search_result_details)
@@ -71,22 +75,24 @@ class LSEvaluation:
         search_result_detail_lst = []
         for _, row in tqdm(self.cases.iterrows(), desc="Evaluation"):
             query = row["query"]
-            retrieved_docs = ast.literal_eval(row["idx"])
+            target_docs = ast.literal_eval(row["idx"])
 
             query_vector = self.model.infer(query).cpu()
             # expand dim for query vector
             scores, corpus_ids = index.search(np.expand_dims(query_vector, axis=0),
-                                              len(retrieved_docs) * self.retrieval_candidate_times)
-
+                                              min(
+                                                  max(len(target_docs), self.retrieval_candidate_times * 2),
+                                                  len(self.dataset))
+                                              )
             ranked_lectures, search_context = self.postprocess(corpus_ids[0], scores[0])
             ranked_lecture_idxs = [doc_idx for doc_idx, score in ranked_lectures]
-            ranked_lecture_idxs = ranked_lecture_idxs[:len(retrieved_docs) * 4]
+            ranked_lecture_idxs = ranked_lecture_idxs[:max(len(target_docs), self.retrieval_candidate_times)]
 
-            score = self.recall(retrieved_docs, ranked_lecture_idxs)
+            score = self.recall(target_docs, ranked_lecture_idxs)
             score_lst.append(score)
             retrieved_docs_lst.append(ranked_lecture_idxs)
 
-            expected_lec_details = self.get_search_context_for_target_lec(query_vector, retrieved_docs)
+            expected_lec_details = self.get_search_context_for_target_lec(query_vector, target_docs)
             search_result_details = self.get_search_context_for_search_result(ranked_lectures, search_context)
             expected_lec_detail_lst.append(expected_lec_details)
             search_result_detail_lst.append(search_result_details)
