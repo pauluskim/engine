@@ -9,3 +9,9 @@ class IndexInterface:
 
     def indexing(self, output_path):
         raise NotImplementedError("Indexing method is a main method of this class!!")
+
+    def load(self, index_path):
+        raise NotImplementedError("load method is a main method of this class!!")
+
+    def search(self, query_embedding, k):
+        raise NotImplementedError("search method is a main method of this class!!")

@@ -2,8 +2,9 @@ import argparse
 import math
 
 import faiss
+import numpy as np
 import torch
-from faiss import write_index
+from faiss import write_index, read_index
 from torch.nn import functional
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -56,6 +57,8 @@ class LSFaiss(IndexInterface):
             doc_vectors = functional.normalize(self.model.infer(docs), p=2.0, dim=1)
             vector_lst.append(doc_vectors)
             counter += 1
+            if counter == 10:
+                break
 
         # Need to aggregate vectors
         vectors = torch.cat(vector_lst, dim=0).cpu().numpy()
@@ -67,6 +70,15 @@ class LSFaiss(IndexInterface):
         mkdir_if_not_exist(output_path)
         write_index(self.index, output_path)
         # Index * index = read_index("large.index")
+
+    def load(self, index_path):
+        self.index = read_index(index_path)
+
+    def search(self, query_embedding, k):
+        # expand dim for query vector
+        query_embedding = np.expand_dims(query_embedding.cpu(), axis=0)
+        scores, corpus_ids = self.index.search(query_embedding, k)
+        return corpus_ids[0], scores[0]
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

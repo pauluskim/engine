@@ -41,6 +41,8 @@ class LSHnsw(IndexInterface):
             vectors = self.model.infer(docs)
             self.p.add_items(vectors.cpu())
             counter += 1
+            if counter == 5:
+                break
 
         self.p.set_ef(self.ef)
         self.save(output_path)
@@ -49,6 +51,19 @@ class LSHnsw(IndexInterface):
         mkdir_if_not_exist(output_path)
         with open(output_path, "wb") as f:
             pickle.dump(self.p, f)
+
+    def load(self, index_path):
+        with open(index_path, "rb") as f:
+            self.index = pickle.load(f)
+
+    def search(self, query_embedding, k):
+        corpus_ids, distances = self.index.knn_query(query_embedding.cpu(), k=k)
+
+        scores = 1 / (1 + distances[0])
+        # https://stats.stackexchange.com/a/158285
+        return corpus_ids[0], scores
+
+
 
 
 if __name__ == "__main__":

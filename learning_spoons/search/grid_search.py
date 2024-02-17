@@ -43,80 +43,99 @@ class GridSearch:
         self.batch_size = 16
         self.skip_index = args.skip_index
         self.cases = load_testcases(args.cases_path)
+    #
+    # def eval_by_vanilla_index(self, dataset_param):
+    #     dataset = LSDataset(self.dataset_path, dataset_param)
+    #     index = LSVanilla(self.model, dataset, self.batch_size)
+    #
+    #     iter_name = f"{self.model_name}_{dataset_param}"
+    #     index_fname = f"{iter_name}.pth"
+    #     index_fpath = os.path.join(self.index_root_path, index_fname)
+    #
+    #     if self.skip_index and os.path.isfile(index_fpath):
+    #         print("SKIP to index: " + index_fpath)
+    #     else:
+    #         index.indexing(index_fpath)
+    #
+    #     iter_result_name = f"{iter_name}_vanilla_result.csv"
+    #     iter_result_path = os.path.join(self.index_root_path, iter_result_name)
+    #
+    #     if self.skip_index and os.path.isfile(iter_result_path):
+    #         print("SKIP to evaluate: " + iter_result_name)
+    #         df = pd.read_csv(iter_result_path)
+    #         return df["avg_score"][0]
+    #     else:
+    #         evaluation = LSEvaluation(self.cases, self.model, dataset, dataset_param["retrieval_candidate_times"])
+    #         index.load(index_fpath)
+    #         return evaluation.main(index, iter_result_path)
+    #
+    # def eval_by_faiss_index(self, dataset_param):
+    #     dataset = LSDataset(self.dataset_path, dataset_param)
+    #     index = LSFaiss(self.model, dataset, self.batch_size, dataset_param.get("faiss_nprob_ratio", 1.0))
+    #
+    #     iter_name = f"{self.model_name}_{dataset_param}"
+    #     index_fname = f"{iter_name}.index"
+    #     index_fpath = os.path.join(self.index_root_path, index_fname)
+    #
+    #     if self.skip_index and os.path.isfile(index_fpath):
+    #         print("SKIP to index: " + index_fpath)
+    #     else:
+    #         index.indexing(index_fpath)
+    #
+    #     iter_result_name = f"{iter_name}_faiss_result.csv"
+    #     iter_result_path = os.path.join(self.index_root_path, iter_result_name)
+    #
+    #     if self.skip_index and os.path.isfile(iter_result_path):
+    #         print("SKIP to evaluate: " + iter_result_name)
+    #         df = pd.read_csv(iter_result_path)
+    #         return df["avg_score"][0]
+    #     else:
+    #         evaluation = LSEvaluation(self.cases, self.model, dataset, dataset_param["retrieval_candidate_times"])
+    #         index.load(index_fpath)
+    #         return evaluation.main(index, iter_result_path)
+    #
+    # def eval_by_hnsw_index(self, dataset_param):
+    #     dataset = LSDataset(self.dataset_path, dataset_param)
+    #     # TODO: 5 to 1.
+    #     k_cap = 5 * dataset_param["retrieval_candidate_times"]
+    #     index = LSHnsw(self.model, dataset, self.batch_size, k_cap, dataset_param.get("M", 48))
+    #
+    #     iter_name = f"{self.model_name}_{dataset_param}"
+    #     index_fname = f"{iter_name}.pickle"
+    #     index_fpath = os.path.join(self.index_root_path, index_fname)
+    #
+    #     if self.skip_index and os.path.isfile(index_fpath):
+    #         print("SKIP to index: " + index_fpath)
+    #     else:
+    #         index.indexing(index_fpath)
+    #
+    #     iter_result_name = f"{iter_name}_hnsw_result.csv"
+    #     iter_result_path = os.path.join(self.index_root_path, iter_result_name)
+    #
+    #     if self.skip_index and os.path.isfile(iter_result_path):
+    #         print("SKIP to evaluate: " + iter_result_name)
+    #         df = pd.read_csv(iter_result_path)
+    #         return df["avg_score"][0]
+    #     else:
+    #         evaluation = LSEvaluation(self.cases, self.model, dataset, dataset_param["retrieval_candidate_times"])
+    #         index.load(index_fpath)
+    #         return evaluation.main(index, iter_result_path)
 
-    def eval_by_vanilla_index(self, dataset_param):
-        dataset = LSDataset(self.dataset_path, dataset_param)
-        index = LSVanilla(self.model, dataset, self.batch_size)
-
-        iter_name = f"{self.model_name}_{dataset_param}"
-        index_fname = f"{iter_name}.pth"
-        index_fpath = os.path.join(self.index_root_path, index_fname)
-
-        if self.skip_index and os.path.isfile(index_fpath):
-            print("SKIP to index: " + index_fpath)
+    def eval(self, index, dataset, index_path, result_path, k):
+        if self.skip_index and os.path.isfile(index_path):
+            print("SKIP to index: " + index_path)
         else:
-            index.indexing(index_fpath)
+            index.indexing(index_path)
 
-        iter_result_name = f"{iter_name}_vanilla_result.csv"
-        iter_result_path = os.path.join(self.index_root_path, iter_result_name)
-
-        if self.skip_index and os.path.isfile(iter_result_path):
-            print("SKIP to evaluate: " + iter_result_name)
-            df = pd.read_csv(iter_result_path)
+        if self.skip_index and os.path.isfile(result_path):
+            print("SKIP to evaluate: " + result_path)
+            df = pd.read_csv(result_path)
             return df["avg_score"][0]
         else:
-            evaluation = LSEvaluation(self.cases, self.model, dataset, dataset_param["retrieval_candidate_times"])
-            return evaluation.vanilla(index_fpath, iter_result_path)
+            evaluation = LSEvaluation(self.cases, self.model, dataset, k)
+            index.load(index_path)
+            return evaluation.main(index, result_path)
 
-    def eval_by_faiss_index(self, dataset_param):
-        dataset = LSDataset(self.dataset_path, dataset_param)
-        inference = LSFaiss(self.model, dataset, self.batch_size, dataset_param.get("faiss_nprob_ratio", 1.0))
-
-        iter_name = f"{self.model_name}_{dataset_param}"
-        index_fname = f"{iter_name}.index"
-        index_fpath = os.path.join(self.index_root_path, index_fname)
-
-        if self.skip_index and os.path.isfile(index_fpath):
-            print("SKIP to index: " + index_fpath)
-        else:
-            inference.indexing(index_fpath)
-
-        iter_result_name = f"{iter_name}_faiss_result.csv"
-        iter_result_path = os.path.join(self.index_root_path, iter_result_name)
-
-        if self.skip_index and os.path.isfile(iter_result_path):
-            print("SKIP to evaluate: " + iter_result_name)
-            df = pd.read_csv(iter_result_path)
-            return df["avg_score"][0]
-        else:
-            evaluation = LSEvaluation(self.cases, self.model, dataset, dataset_param["retrieval_candidate_times"])
-            return evaluation.faiss(index_fpath, iter_result_path)
-
-    def eval_by_hnsw_index(self, dataset_param):
-        dataset = LSDataset(self.dataset_path, dataset_param)
-        # TODO: 5 to 1.
-        k_cap = 5 * dataset_param["retrieval_candidate_times"]
-        inference = LSHnsw(self.model, dataset, self.batch_size, k_cap, dataset_param.get("M", 48))
-
-        iter_name = f"{self.model_name}_{dataset_param}"
-        index_fname = f"{iter_name}.pickle"
-        index_fpath = os.path.join(self.index_root_path, index_fname)
-
-        if self.skip_index and os.path.isfile(index_fpath):
-            print("SKIP to index: " + index_fpath)
-        else:
-            inference.indexing(index_fpath)
-
-        iter_result_name = f"{iter_name}_hnsw_result.csv"
-        iter_result_path = os.path.join(self.index_root_path, iter_result_name)
-
-        if self.skip_index and os.path.isfile(iter_result_path):
-            print("SKIP to evaluate: " + iter_result_name)
-            df = pd.read_csv(iter_result_path)
-            return df["avg_score"][0]
-        else:
-            evaluation = LSEvaluation(self.cases, self.model, dataset, dataset_param["retrieval_candidate_times"])
-            return evaluation.hnsw(index_fpath, iter_result_path)
 
     def explore(self):
         dataset_params = self.params["dataset"]
@@ -128,12 +147,27 @@ class GridSearch:
 
             keys, values = zip(*dataset_params.items())
             for dataset_param in [dict(zip(keys, v)) for v in itertools.product(*values)]:
+                dataset = LSDataset(self.dataset_path, dataset_param)
+                iter_name = f"{self.model_name}_{dataset_param}"
+                k = dataset_param["retrieval_candidate_times"]
                 if self.index_type == "faiss":
-                    score = self.eval_by_faiss_index(dataset_param)
+                    index = LSFaiss(self.model, dataset, self.batch_size, dataset_param.get("faiss_nprob_ratio", 1.0))
+                    index_path = os.path.join(self.index_root_path, f"{iter_name}.index")
+                    result_path = os.path.join(self.index_root_path, f"{iter_name}_faiss_result.csv")
+                    score = self.eval(index, dataset, index_path, result_path, k)
+                    # score = self.eval_by_faiss_index(dataset_param)
                 elif self.index_type == "hnsw":
-                    score = self.eval_by_hnsw_index(dataset_param)
+                    index = LSHnsw(self.model, dataset, self.batch_size, 5 * k, dataset_param.get("M", 48))
+                    index_path = os.path.join(self.index_root_path, f"{iter_name}.pickle")
+                    result_path = os.path.join(self.index_root_path, f"{iter_name}_hnsw_result.csv")
+                    score = self.eval(index, dataset, index_path, result_path, k)
+                    # score = self.eval_by_hnsw_index(dataset_param)
                 else:
-                    score = self.eval_by_vanilla_index(dataset_param)
+                    index = LSVanilla(self.model, dataset, self.batch_size)
+                    index_path = os.path.join(self.index_root_path, f"{iter_name}.pth")
+                    result_path = os.path.join(self.index_root_path, f"{iter_name}_vanilla_result.csv")
+                    score = self.eval(index, dataset, index_path, result_path, k)
+                    # score = self.eval_by_vanilla_index(dataset_param)
                 result_lst.append([str(score), f"{model_name}_{dataset_param}"])
 
             with open(os.path.join(self.index_root_path, model_name + f"_{self.index_type}_final_result.csv"), "w") as f:
