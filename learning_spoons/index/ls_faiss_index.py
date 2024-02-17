@@ -57,8 +57,6 @@ class LSFaiss(IndexInterface):
             doc_vectors = functional.normalize(self.model.infer(docs), p=2.0, dim=1)
             vector_lst.append(doc_vectors)
             counter += 1
-            if counter == 10:
-                break
 
         # Need to aggregate vectors
         vectors = torch.cat(vector_lst, dim=0).cpu().numpy()

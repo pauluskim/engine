@@ -41,8 +41,6 @@ class LSHnsw(IndexInterface):
             vectors = self.model.infer(docs)
             self.p.add_items(vectors.cpu())
             counter += 1
-            if counter == 5:
-                break
 
         self.p.set_ef(self.ef)
         self.save(output_path)

@@ -18,8 +18,6 @@ class LSVanilla(IndexInterface):
             doc_vectors = functional.normalize(self.model.infer(docs), p=2.0, dim =1)
             vector_lst.append(doc_vectors)
             counter += 1
-            if counter == 5:
-                break
 
 
         # need to convert from list to tensor
