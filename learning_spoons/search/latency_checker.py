@@ -1,8 +1,6 @@
 import argparse
-import pickle
+import time
 
-import torch
-from faiss import read_index
 from tqdm import tqdm
 
 from learning_spoons.data.utils import load_testcases
@@ -22,17 +20,24 @@ class LatencyChecker:
 
     def load_index(self):
         if self.index_type == "vanilla":
-            self.index = LSVanilla(self.model, None, 1)
+            self.index = LSVanilla(self.model)
         elif self.index_type == "faiss":
-            self.index = LSFaiss(self.model, None, 1)
+            self.index = LSFaiss(self.model)
         else:  # hnsw
-            self.index = LSHnsw(self.model, None, 1, None, None)
+            self.index = LSHnsw(self.model)
         self.index.load(self.index_path)
 
     def run(self):
+        elapsed_times = []
         for _, row in tqdm(self.cases.iterrows(), desc="Evaluation"):
             query_vector = self.model.infer(row["query"]).cpu()
+            start = time.process_time()
             self.index.search(query_vector, 30)
+            elapsed_times.append((time.process_time()- start) * 1000)
+        print("\n[{}]\t\t Avg Elapsed Time: {:.2f}ms"
+              .format(self.index_type, sum(elapsed_times) / len(elapsed_times)))
+
+
 
 
 
