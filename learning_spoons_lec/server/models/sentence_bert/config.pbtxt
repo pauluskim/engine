@@ -1,0 +1,44 @@
+name: "sentence_bert"
+max_batch_size: 1
+backend: "python"
+input [
+    {
+        name: "input_ids"
+        data_type: TYPE_INT64
+        dims: [ -1 ]
+    },
+    {
+        name: "attention_mask"
+        data_type: TYPE_INT64
+        dims: [ -1 ]
+    }
+]
+output [
+    {
+        name: "lec_titles"
+        data_type: TYPE_STRING
+        dims: [ -1 ]
+    },
+    {
+        name: "scores"
+        data_type: TYPE_FP32
+        dims: [ -1 ]
+    }
+]
+instance_group [
+    {
+        count: 1
+        kind: KIND_CPU
+    }
+]
+
+parameters: [
+    {
+        key: "index",
+        value: {string_value: "ls_faiss_nprob10.index"}
+    },
+    {
+        key: "dataset",
+        value: {string_value: "learningspoons_data.parquet"}
+    }
+]

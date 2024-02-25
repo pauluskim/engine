@@ -4,6 +4,29 @@ import sys
 import numpy as np
 import tritonclient.http as httpclient
 
+def generate_output_type(model_name):
+    outputs = []
+    if model_name == "tokenizer":
+        outputs.append(httpclient.InferRequestedOutput("input_ids", binary_data=False))
+        outputs.append(httpclient.InferRequestedOutput("attention_mask", binary_data=False))
+    elif model_name == "ebr":
+        outputs.append(httpclient.InferRequestedOutput("lec_titles", binary_data=False))
+        outputs.append(httpclient.InferRequestedOutput("scores", binary_data=False))
+
+    return outputs
+
+def postprocess(model_name, output):
+    result = []
+    if model_name == "tokenizer":
+        input_ids = output.as_numpy("input_ids").tolist()
+        attendtion_mask = output.as_numpy("attention_mask").tolist()
+        result = [input_ids, attendtion_mask]
+    elif model_name == "ebr":
+        titles = output.as_numpy("lec_titles").tolist().split("*&*")
+        scores = output.as_numpy("scores").tolist()
+        result = [titles, scores]
+    return result
+
 def infer(triton_client, model_name, query):
     # Generate inputs
     inputs = []
@@ -13,18 +36,14 @@ def infer(triton_client, model_name, query):
     inputs.append(input)
 
     # Generate outputs
-    outputs = []
-    outputs.append(httpclient.InferRequestedOutput("reviews", binary_data=False))
-    outputs.append(httpclient.InferRequestedOutput("dists", binary_data=False))
+    outputs = generate_output_type(model_name)
 
     # Get response from triton
     results = triton_client.infer(model_name=model_name, inputs=inputs, outputs=outputs)
 
     # postprocess from results
-    reviews = results.as_numpy("reviews").tolist().split("*&*")
-    dists = results.as_numpy("dists").tolist()
+    print(postprocess(model_name, results))
 
-    return reviews, dists
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -54,10 +73,7 @@ if __name__ == "__main__":
         print("context creation failed: " + str(e))
         sys.exit()
 
-    queries = ["재밌는 영화", "여주인공이 예뻣던 영화", "킬링 타임용 영화", "답답해서 암걸릴 것 같은 영화"]
+    queries = ["머신러닝", "부동산", "주식"]
 
     for query in queries:
-        reviews, dists = infer(triton_client, "ebr", query)
-        print("Query: {}".format(query))
-        for review, dist in zip(reviews, dists):
-            print("\t{}: {}".format(review, dist))
+        infer(triton_client, "ebr", query)

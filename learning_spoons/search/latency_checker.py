@@ -29,19 +29,13 @@ class LatencyChecker:
 
     def run(self):
         elapsed_times = []
-        for _, row in tqdm(self.cases.iterrows(), desc="Evaluation"):
+        for _, row in tqdm(self.cases.iterrows(), desc="Evaluation", total=len(self.cases)):
             query_vector = self.model.infer(row["query"]).cpu()
             start = time.process_time()
             self.index.search(query_vector, 30)
-            elapsed_times.append((time.process_time()- start) * 1000)
+            elapsed_times.append((time.process_time() - start) * 1000)
         print("\n[{}]\t\t Avg Elapsed Time: {:.2f}ms"
               .format(self.index_type, sum(elapsed_times) / len(elapsed_times)))
-
-
-
-
-
-
 
 
 if __name__ == "__main__":

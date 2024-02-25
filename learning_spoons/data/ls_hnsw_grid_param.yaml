@@ -6,4 +6,4 @@ dataset:
   section_weight:
     - {"강사소개": 0.1, "title": 1, "강의소개": 1, "인트로": 1}
   retrieval_candidate_times: [30]
-  M: [48, 64]
+  M: [6, 12, 24]

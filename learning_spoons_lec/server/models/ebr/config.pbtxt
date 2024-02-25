@@ -1,6 +1,6 @@
 name: "ebr"
 max_batch_size: 1
-backend: "python"
+platform: "ensemble"
 input [
     {
         name: "query"
@@ -10,35 +10,59 @@ input [
 ]
 output [
     {
-        name: "reviews"
+        name: "lec_titles"
         data_type: TYPE_STRING
         dims: [ 1 ]
     },
     {
-        name: "dists"
+        name: "scores"
         data_type: TYPE_FP32
         dims: [ 1 ]
     }
 ]
-
-instance_group [
-    {
-        count: 1
-        kind: KIND_CPU
-    }
-]
-
-parameters: [
-    {
-        key: "INDEX",
-        value: {string_value: "faiss_rating.index"}
-    },
-    {
-        key: "IDX2REVIEW",
-        value: {string_value: "ratings.txt"}
-    },
-    {
-        key: "STMODEL",
-        value: {string_value: "ST"}
-    }
-]
+ensemble_scheduling {
+    step [
+        {
+            model_name: "tokenizer"
+            model_version: -1
+            input_map {
+                key: "query"
+                value: "query"
+            }
+            output_map [
+                {
+                    key: "input_ids"
+                    value: "input_ids"
+                },
+                {
+                    key: "attention_mask"
+                    value: "attention_mask"
+                }
+            ]
+        },
+        {
+            model_name: "sentence_bert"
+            model_version: -1
+            input_map [
+                {
+                    key: "input_ids"
+                    value: "input_ids"
+                },
+                {
+                    key: "attention_mask"
+                    value: "attention_mask"
+                }
+            ]
+            output_map  [
+                {
+                    key: "lec_titles"
+                    value: "lec_titles"
+                },
+                {
+                    key: "scores"
+                    value: "scores"
+                }
+            ]
+        }
+    ]
+}
