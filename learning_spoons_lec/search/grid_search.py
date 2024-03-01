@@ -4,7 +4,7 @@ import os
 import pandas as pd
 
 from learning_spoons_lec.data.ls_dataset import LSDataset
-from learning_spoons_lec.data.utils import load_testcases
+from learning_spoons_lec.data.utils import load_testcases, load_args
 from learning_spoons_lec.index.ls_faiss_index import LSFaiss
 from learning_spoons_lec.index.ls_vanilla import LSVanilla
 from learning_spoons_lec.model.sentence_bert import SentenceBert
@@ -13,121 +13,42 @@ from learning_spoons_lec.search.ls_evaluation import LSEvaluation
 
 class GridSearch:
     def __init__(self, args):
-        # self.params = {
-        #     "st_model": ["jhgan/ko-sroberta-multitask"],
-        #     "dataset": {
-        #         "delimiter": [" "],
-        #         "grouping": [None],
-        #         "section_weight": [
-        #             {"강사소개": 0.1, "title": 1, "강의소개": 1, "인트로": 1},
-        #         ],
-        #         "retrieval_candidate_times": [15]
-        #     }
-        # }
-        self.params = {
-            "st_model": ["jhgan/ko-sroberta-multitask",
-                         "snunlp/KR-SBERT-V40K-klueNLI-augSTS",
-                         "intfloat/multilingual-e5-large",
-                         "jhgan/ko-sbert-sts"],
-            "dataset": {
-                "delimiter": [" ", "\n"],
-                "grouping": [None, ["idx", "title", "section"], ["idx", "title"]],
-                "section_weight": [
-                    {"강사소개": 0.1, "title": 1, "강의소개": 1, "인트로": 1},
-                    {"강사소개": 0.1, "title": 2, "강의소개": 1, "인트로": 1},
-                    {"강사소개": 0.1, "title": 1, "강의소개": 2, "인트로": 1},
-                    {"강사소개": 0.1, "title": 2, "강의소개": 2, "인트로": 1},
-                    {"강사소개": 0.1, "title": 1, "강의소개": 1, "인트로": 2},
-                    {"강사소개": 0.1, "title": 2, "강의소개": 1, "인트로": 2},
-                    {"강사소개": 0.1, "title": 1, "강의소개": 2, "인트로": 2},
-                    {"강사소개": 0.1, "title": 2, "강의소개": 2, "인트로": 2},
-                ],
-                "retrieval_candidate_times": [15, 30, 50]
-            }
-        }
         self.dataset_path = args.dataset_path
-        self.index_root_path = args.index_root_path
         self.index_type = args.index_type
+        self.params = load_args(args.grid_param_path)
+        self.index_root_path = args.index_root_path
         self.batch_size = 16
         self.skip_index = args.skip_index
         self.cases = load_testcases(args.cases_path)
 
-    def eval_by_vanilla_index(self, dataset_param):
-        dataset = LSDataset(self.dataset_path, dataset_param)
-        index = LSVanilla(self.model, dataset, self.batch_size)
-
-        iter_name = f"{self.model_name}_{dataset_param}"
-        index_fname = f"{iter_name}.pth"
-        index_fpath = os.path.join(self.index_root_path, index_fname)
-
-        if self.skip_index and os.path.isfile(index_fpath):
-            print("SKIP to index: " + index_fpath)
-        else:
-            index.indexing(index_fpath)
-
-        iter_result_name = f"{iter_name}_vanilla_result.csv"
-        iter_result_path = os.path.join(self.index_root_path, iter_result_name)
-
-        if self.skip_index and os.path.isfile(iter_result_path):
-            print("SKIP to evaluate: " + iter_result_name)
-            df = pd.read_csv(iter_result_path)
-            return df["avg_score"][0]
-        else:
-            evaluation = LSEvaluation(self.cases, self.model, dataset, dataset_param["retrieval_candidate_times"])
-            score_lst, retrieved_docs_lst, expected_lec_detail_lst, search_result_detail_lst = (
-                evaluation.vanilla(index_fpath))
-            avg_score = 1.0 * sum(score_lst) / len(score_lst)
-            evaluation.cases['recall'] = score_lst
-            evaluation.cases['retrieved_docs'] = retrieved_docs_lst
-            evaluation.cases['expected_details'] = expected_lec_detail_lst
-            evaluation.cases['result_details'] = search_result_detail_lst
-            evaluation.cases['avg_score'] = avg_score
-            evaluation.cases.to_csv(iter_result_path)
-            return avg_score
-
-    def eval_by_faiss_index(self, dataset_param):
-        dataset = LSDataset(self.dataset_path, dataset_param)
-        inference = LSFaiss(self.model, dataset, self.batch_size)
-
-        iter_name = f"{self.model_name}_{dataset_param}"
-        index_fname = f"{iter_name}.index"
-        index_fpath = os.path.join(self.index_root_path, index_fname)
-
-        if self.skip_index and os.path.isfile(index_fpath):
-            print("SKIP to index: " + index_fpath)
+    def eval(self, index, dataset, index_path, result_path, k):
+        if self.skip_index and os.path.isfile(index_path):
+            print("SKIP to index: " + index_path)
         else:
             inference.indexing(index_fpath)
 
-        iter_result_name = f"{iter_name}_faiss_result.csv"
-        iter_result_path = os.path.join(self.index_root_path, iter_result_name)
-
-        if self.skip_index and os.path.isfile(iter_result_path):
-            print("SKIP to evaluate: " + iter_result_name)
-            df = pd.read_csv(iter_result_path)
+        if self.skip_index and os.path.isfile(result_path):
+            print("SKIP to evaluate: " + result_path)
+            df = pd.read_csv(result_path)
             return df["avg_score"][0]
         else:
-            evaluation = LSEvaluation(self.cases, self.model, dataset, dataset_param["retrieval_candidate_times"])
-            score_lst, retrieved_docs_lst, expected_lec_detail_lst, search_result_detail_lst = evaluation.faiss(index_fpath)
-            iter_result_name = f"{iter_name}_result.csv"
-            avg_score = 1.0 * sum(score_lst) / len(score_lst)
-            evaluation.cases['recall'] = score_lst
-            evaluation.cases['retrieved_docs'] = retrieved_docs_lst
-            evaluation.cases['expected_details'] = expected_lec_detail_lst
-            evaluation.cases['result_details'] = search_result_detail_lst
-            evaluation.cases['avg_score'] = avg_score
-            evaluation.cases.to_csv(os.path.join(self.index_root_path, iter_result_name))
-            return avg_score
+            evaluation = LSEvaluation(self.cases, self.model, dataset, k)
+            index.load(index_path)
+            return evaluation.main(index, result_path)
+
 
     def explore(self):
         dataset_params = self.params["dataset"]
         result_lst = []
         # 모델별로 report를 작성하기 위한 for-loop
         #   each iteration에서 나머지 dataset_params의 조합으로 실행 및 저장
+        #   index type 별로 index를 instance하여 실행
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--cases_path", type=str)
+    parser.add_argument("--grid_param_path", type=str)
     parser.add_argument("--index_root_path", type=str)
     parser.add_argument("--dataset_path", type=str)
     parser.add_argument("--index_type", type=str)

@@ -1,10 +1,7 @@
 import argparse
-import pdb
 import ast
 from collections import Counter, defaultdict
 
-import numpy as np
-from faiss import read_index
 from tqdm import tqdm
 
 from data.ls_dataset import LSDataset
@@ -16,7 +13,6 @@ import torch
 from torch.nn import functional
 
 
-
 class LSEvaluation:
     def __init__(self, cases, model, dataset, retrieval_candidate_times):
         self.cases = cases
@@ -24,36 +20,8 @@ class LSEvaluation:
         self.dataset = dataset
         self.retrieval_candidate_times = retrieval_candidate_times
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-    def faiss(self, index):
-        index = read_index(index)
-        score_lst = []
-        retrieved_docs_lst = []
-        expected_lec_detail_lst = []
-        search_result_detail_lst = []
-        for _, row in tqdm(self.cases.iterrows(), desc="Evaluation"):
-            query = row["query"]
-            retrieved_docs = ast.literal_eval(row["idx"])
 
-            query_vector = self.model.infer(query).cpu()
-            # expand dim for query vector
-            scores, corpus_ids = index.search(np.expand_dims(query_vector, axis=0), len(retrieved_docs) * self.retrieval_candidate_times)
-
-            ranked_lectures, search_context = self.postprocess(corpus_ids[0], scores[0])
-            ranked_lecture_idxs = [doc_idx for doc_idx, score in ranked_lectures]
-            ranked_lecture_idxs = ranked_lecture_idxs[:len(retrieved_docs) * 4]
-
-            score = self.recall(retrieved_docs, ranked_lecture_idxs)
-            score_lst.append(score)
-            retrieved_docs_lst.append(ranked_lecture_idxs)
-
-            expected_lec_details = self.get_search_context_for_target_lec(query_vector, retrieved_docs)
-            search_result_details = self.get_search_context_for_search_result(ranked_lectures, search_context)
-            expected_lec_detail_lst.append(expected_lec_details)
-            search_result_detail_lst.append(search_result_details)
-        return score_lst, retrieved_docs_lst, expected_lec_detail_lst, search_result_detail_lst
-
-    def vanilla(self, index):
-        corpus_embeddings = torch.load(index, map_location=torch.device(self.device))
+    def main(self, index, output_path):
         score_lst = []
         retrieved_docs_lst = []
         expected_lec_detail_lst = []
@@ -65,16 +33,11 @@ class LSEvaluation:
             query_embedding = self.model.infer(query)
             query_embedding = functional.normalize(query_embedding, p=2.0, dim=0)
 
-            # Already query_embedding and corpus_embeddings are normalized.
-            cos_scores = torch.inner(query_embedding, corpus_embeddings)
+            doc_idxs, scores = index.search(query_embedding, min(
+                                          max(len(target_docs), self.retrieval_candidate_times * 2),
+                                          len(self.dataset)))
 
-            # Find the top k docs from the calculation results.
-            scores, doc_idxs = torch.topk(cos_scores,
-                                          k=min(
-                                              max(len(target_docs), self.retrieval_candidate_times*2),
-                                              len(cos_scores)))
-
-            candidates, search_context = self.postprocess(doc_idxs.cpu(), scores.cpu())
+            candidates, search_context = self.postprocess(doc_idxs, scores)
             candidates_idxs = [lec_idx for lec_idx, score in candidates]
             candidates_idxs = candidates_idxs[:max(len(target_docs), self.retrieval_candidate_times)]
 
@@ -87,8 +50,11 @@ class LSEvaluation:
             search_result_details = self.get_search_context_for_search_result(candidates, search_context)
             expected_lec_detail_lst.append(target_lec_details)
             search_result_detail_lst.append(search_result_details)
-        return score_lst, retrieved_docs_lst, expected_lec_detail_lst, search_result_detail_lst
 
+        avg_score = 1.0 * sum(score_lst) / len(score_lst)
+        self.save_as_csv(output_path, score_lst, retrieved_docs_lst, expected_lec_detail_lst, search_result_detail_lst,
+                         avg_score)
+        return avg_score
 
     def postprocess(self, doc_ids, scores):
         """
@@ -110,6 +76,8 @@ class LSEvaluation:
         search_context = defaultdict(list)
         for doc_id, score in zip(doc_ids, scores):
             pass
+
+        return None, None
 
     def recall(self, expected_lst, actual_lst):
         pass
@@ -149,6 +117,16 @@ class LSEvaluation:
                 lec_info.append([lec_title, section, text, weighted_score])
             lec_info_dict[lec_id] = lec_info
         return lec_info_dict
+
+    def save_as_csv(self, path, score_lst, retrieved_docs_lst, expected_lec_detail_lst, search_result_detail_lst,
+                    avg_score):
+        self.cases['recall'] = score_lst
+        self.cases['retrieved_docs'] = retrieved_docs_lst
+        self.cases['expected_details'] = expected_lec_detail_lst
+        self.cases['result_details'] = search_result_detail_lst
+        self.cases['avg_score'] = avg_score
+        self.cases.to_csv(path)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

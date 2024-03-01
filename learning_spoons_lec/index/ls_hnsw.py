@@ -1,8 +1,6 @@
 import argparse
-import sys
 
 from data.utils import load_args, mkdir_if_not_exist
-
 
 
 import pickle
@@ -12,7 +10,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from data.rating_dataset import RatingDataset
-from learning_spoons.index.IndexInterface import IndexInterface
+from learning_spoons_lec.index.IndexInterface import IndexInterface
 from model.sentence_bert import SentenceBert
 
 

@@ -1,12 +1,7 @@
 import argparse
-import os
-import pdb
 import ast
-import pickle
 from collections import Counter, defaultdict
 
-import numpy as np
-from faiss import read_index
 from tqdm import tqdm
 
 from data.ls_dataset import LSDataset
@@ -75,6 +70,15 @@ class LSEvaluation:
 
         return sorted(lec_scores.items(), key=lambda item: -item[1]), search_context
 
+    def recall(self, expected_lst, actual_lst):
+        actual_set = set(actual_lst)
+        recall_cnt = 0
+        for expected in expected_lst:
+            if expected in actual_set:
+                recall_cnt += 1
+
+        return 1.0 * recall_cnt / len(expected_lst)
+
     def get_search_context_for_target_lec(self, query_vector, target_docs):
         lec_info_dict = dict()
         for lec_id in target_docs:
@@ -110,15 +114,6 @@ class LSEvaluation:
                 lec_info.append([lec_title, section, text, weighted_score])
             lec_info_dict[lec_id] = lec_info
         return lec_info_dict
-
-    def recall(self, expected_lst, actual_lst):
-        actual_set = set(actual_lst)
-        recall_cnt = 0
-        for expected in expected_lst:
-            if expected in actual_set:
-                recall_cnt += 1
-
-        return 1.0 * recall_cnt / len(expected_lst)
 
     def save_as_csv(self, path, score_lst, retrieved_docs_lst, expected_lec_detail_lst, search_result_detail_lst,
                     avg_score):

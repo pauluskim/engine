@@ -2,22 +2,21 @@ import argparse
 import math
 
 import faiss
+import numpy as np
 import torch
-from faiss import write_index
+from faiss import write_index, read_index
 from torch.nn import functional
-from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from data.ls_dataset import LSDataset
 from data.utils import load_args, mkdir_if_not_exist
-from index.IndexInterface import IndexInterface
+from learning_spoons_lec.index.IndexInterface import IndexInterface
 from model.sentence_bert import SentenceBert
 
 
 class LSFaiss(IndexInterface):
-    def __init__(self, model, dataset, batch_size, nprob=50):
-        super(LSFaiss, self).__init__(model, dataset, batch_size)
-
+    def prepare_index(self, dataset, batch_size, nprob_ratio=1.0):
+        super(LSFaiss, self).prepare_index(dataset, batch_size)
         # This model's max_seq_length = 128
 
         # That means, the position embedding layer of the transformers has 512 weights,
@@ -41,7 +40,7 @@ class LSFaiss(IndexInterface):
         self.index = faiss.IndexIVFFlat(quantizer, vec_dimension, n_clusters, faiss.METRIC_INNER_PRODUCT)
         # Number of clusters to explorer at search time. We will search for nearest neighbors in 3 clusters.
 
-        self.index.nprobe = nprob
+        self.index.nprobe = int(n_clusters * nprob_ratio)
 
     def get_vector_dimenstion(self):
         _, _, context, _, _ = next(iter(self.data_loader))
@@ -67,6 +66,15 @@ class LSFaiss(IndexInterface):
         mkdir_if_not_exist(output_path)
         write_index(self.index, output_path)
         # Index * index = read_index("large.index")
+
+    def load(self, index_path):
+        self.index = read_index(index_path)
+
+    def search(self, query_embedding, k):
+        # expand dim for query vector
+        query_embedding = np.expand_dims(query_embedding.cpu(), axis=0)
+        scores, corpus_ids = self.index.search(query_embedding, k)
+        return corpus_ids[0], scores[0]
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

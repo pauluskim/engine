@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from data.rating_dataset import RatingDataset
 from data.utils import load_args, mkdir_if_not_exist
-from index.IndexInterface import IndexInterface
+from learning_spoons_lec.index.IndexInterface import IndexInterface
 
 
 class LSVanilla(IndexInterface):
@@ -24,6 +24,19 @@ class LSVanilla(IndexInterface):
         vectors = torch.cat(vector_lst, dim=0)
         mkdir_if_not_exist(output_path)
         torch.save(vectors, output_path)
+
+    def load(self, index_path):
+        self.index = torch.load(index_path, map_location=torch.device("cpu"))
+
+    def search(self, query_embedding, k):
+        # Already query_embedding and corpus_embeddings are normalized.
+        cos_scores = torch.inner(query_embedding, self.index)
+
+        # Find the top k docs from the calculation results.
+        scores, doc_idxs = torch.topk(cos_scores, k=k)
+        return doc_idxs.cpu(), scores.cpu()
+
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
