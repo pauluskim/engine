@@ -1,8 +1,6 @@
 import argparse
-import sys
 
 from data.utils import load_args, mkdir_if_not_exist
-
 
 
 import pickle

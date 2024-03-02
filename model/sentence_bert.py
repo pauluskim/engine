@@ -60,5 +60,5 @@ class SentenceBert:
 if __name__ == "__main__":
     model = SentenceBert(model_name="intfloat/multilingual-e5-large")
     print(model.infer("learning spoons"))
-    # model.export("/Users/jack/engine/learning_spoons_lec/resource/ST")
-    model.export_onnx("intfloat/multilingual-e5-large", "/Users/jack/engine/learning_spoons_lec/resource/st.onnx")
+    # model.export("/Users/jack/engine/learning_spoons/resource/ST")
+    model.export_onnx("intfloat/multilingual-e5-large", "/Users/jack/engine/learning_spoons/resource/st.onnx")

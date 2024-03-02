@@ -22,6 +22,6 @@ COPY models $MODEL_DIR
 # docker run --rm --shm-size=1gb -p8000:8000 -p8001:8001 -p8002:8002 server:test tritonserver --model-repository=/server/models --model-control-mode=explicit --load-model=ebr
 
 # Docker run without launching
-# 1. docker run --rm --shm-size=1gb -p8000:8000 -p8001:8001 -p8002:8002 -v /Users/jack/engine/learning_spoons_lec/server/models:/server/models -t -i server:test bash
+# 1. docker run --rm --shm-size=1gb -p8000:8000 -p8001:8001 -p8002:8002 -v /Users/jack/engine/learning_spoons/server/models:/server/models -t -i server:test bash
 # 2. In the docker, run the below command to launch the triton server
 # tritonserver --model-repository=/server/models --model-control-mode=explicit --load-model=ebr

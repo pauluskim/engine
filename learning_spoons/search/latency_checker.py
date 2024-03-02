@@ -3,9 +3,9 @@ import time
 
 from tqdm import tqdm
 
+from learning_spoons.index.ls_hnsw import LSHnsw
 from learning_spoons.data.utils import load_testcases
 from learning_spoons.index.ls_faiss_index import LSFaiss
-from learning_spoons.index.ls_hnsw import LSHnsw
 from learning_spoons.index.ls_vanilla import LSVanilla
 from learning_spoons.model.sentence_bert import SentenceBert
 

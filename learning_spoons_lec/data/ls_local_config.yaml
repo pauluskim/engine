@@ -1,4 +1,0 @@
-dataset: /Users/jack/engine/resource/learningspoons_data.parquet
-index_output:
-  hnsw: /Users/jack/engine/resource/index/ls_hnsw_rating.pickle
-  faiss: /Users/jack/engine/resource/index/ls_faiss_rating.index
