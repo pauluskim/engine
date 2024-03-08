@@ -20,12 +20,12 @@ def postprocess(model_name, output):
     if model_name == "tokenizer":
         input_ids = output.as_numpy("input_ids").tolist()
         attendtion_mask = output.as_numpy("attention_mask").tolist()
-        result = [input_ids, attendtion_mask]
+        print([input_ids, attendtion_mask])
     elif model_name == "ebr":
         titles = output.as_numpy("lec_titles").tolist().split("*&*")
         scores = output.as_numpy("scores").tolist()
-        result = [titles, scores]
-    return result
+        for title, score in zip(titles, scores):
+            print("\t{}: {}".format(title, score))
 
 def infer(triton_client, model_name, query):
     # Generate inputs
@@ -42,7 +42,9 @@ def infer(triton_client, model_name, query):
     results = triton_client.infer(model_name=model_name, inputs=inputs, outputs=outputs)
 
     # postprocess from results
-    print(postprocess(model_name, results))
+    print("Query: ", query)
+    postprocess(model_name, results)
+    print()
 
 
 if __name__ == "__main__":
@@ -73,7 +75,7 @@ if __name__ == "__main__":
         print("context creation failed: " + str(e))
         sys.exit()
 
-    queries = ["머신러닝", "부동산", "주식"]
+    queries = ["머신러닝", "부동산", "주식", "데이터분석", "회사 성장시키기", "회사 키우기"]
 
     for query in queries:
         infer(triton_client, "ebr", query)
