@@ -75,7 +75,7 @@ if __name__ == "__main__":
         print("context creation failed: " + str(e))
         sys.exit()
 
-    queries = ["머신러닝", "부동산", "주식", "데이터분석", "회사 성장시키기", "회사 키우기"]
+    queries = ["머신러닝", "부동산", "주식", "데이터분석", "회사 성장시키기", "회사 키우기", "UX 분석", "고객경험 분석"]
 
     for query in queries:
         infer(triton_client, "ebr", query)
