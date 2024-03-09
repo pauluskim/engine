@@ -57,30 +57,22 @@ class LSEvaluation:
         return avg_score
 
     def postprocess(self, doc_ids, scores):
-        """
-        lecture의 최종 스코어를 계산
-
-        lecture_score = sum(weighted_doc_score)
-        weighted_doc_score = doc_score * doc_weight(section_weight)
-
-        return candidates, search_context
-
-        # Caveat
-        section 수에 따른 ranking에 왜곡이 있을 수 있음
-        A라는 강의는 0.7의 section이 5개
-        B라는 강의는 0.8의 section이 3개 라고 하면
-        현재 논리에서는 A가 더 높은 점수를 차지함. 따라서 section의 제한을 거는게 필요
-        retrieve 단계에서는 크게 문제될것은 아님. 이건 reranking 단에서 해결해야할 문제
-        """
         lec_scores = Counter()
         search_context = defaultdict(list)
         for doc_id, score in zip(doc_ids, scores):
-            pass
+            lec_id, lec_title, text, section, section_weight = self.dataset[doc_id]
+            lec_scores[lec_id] += score * section_weight
+            search_context[lec_id].append([lec_title, text, section, score * section_weight])
 
-        return None, None
+        return sorted(lec_scores.items(), key=lambda item: -item[1]), search_context
 
     def recall(self, expected_lst, actual_lst):
-        pass
+        actual_set = set(actual_lst)
+        recall_cnt = 0
+        for expected in expected_lst:
+            if expected in actual_set:
+                recall_cnt += 1
+        return 1.0 * recall_cnt / len(expected_lst)
 
     def get_search_context_for_target_lec(self, query_vector, target_docs):
         lec_info_dict = dict()
@@ -90,7 +82,7 @@ class LSEvaluation:
             texts = []
             section_weights = []
             for doc in docs:
-                text_idx = self.dataset.refined_columns2idx["text"]
+                text_idx = self.dataset.refined_column2idx["text"]
 
                 texts.append(doc[text_idx])
                 section_weights.append(doc[-1])

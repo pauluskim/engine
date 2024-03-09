@@ -88,7 +88,7 @@ class LSDataset(Dataset):
         return [lec_id, lec_title, text, section, section_weight]
 
     def get_by_lec_id(self, lec_id):
-        pass
+        return self.refined_df[self.refined_df["idx"] == lec_id].values.tolist()
 
 if __name__ == "__main__":
     fpath = "/Users/jack/engine/learning_spoons/resource/learningspoons_data.parquet"

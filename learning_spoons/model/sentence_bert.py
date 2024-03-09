@@ -45,26 +45,26 @@ class SentenceBert:
         path_obj.parent.mkdir()
         convert(framework="pt", model=model_name, output=Path(path), opset=11)
 
-    def load_onnx(self, onnx_path, tokenizer_path):
-        sample_query = "러닝스푼즈"
-
-        sess = InferenceSession(onnx_path)
-
-        tokenizer =
-        model_inputs =
-        onnx_output =
-
-        onnx_embeddings = # average pooling
-        onnx_embeddings = # normalized
-
-        # Actual part
-        actual_output = self.model.encode(sample_query)
-        actual_tensor = torch.tensor(actual_output).view(1,-1)
-
-        assert (abs(1.0 - torch.cosine_similarity(onnx_embeddings, actual_tensor).tolist()[0]) < 1e-3)
-
-    def average_pool(self, onnx_output, attention_mask):
-        pass
+    # def load_onnx(self, onnx_path, tokenizer_path):
+    #     sample_query = "러닝스푼즈"
+    #
+    #     sess = InferenceSession(onnx_path)
+    #
+    #     tokenizer =
+    #     model_inputs =
+    #     onnx_output =
+    #
+    #     onnx_embeddings = # average pooling
+    #     onnx_embeddings = # normalized
+    #
+    #     # Actual part
+    #     actual_output = self.model.encode(sample_query)
+    #     actual_tensor = torch.tensor(actual_output).view(1,-1)
+    #
+    #     assert (abs(1.0 - torch.cosine_similarity(onnx_embeddings, actual_tensor).tolist()[0]) < 1e-3)
+    #
+    # def average_pool(self, onnx_output, attention_mask):
+    #     pass
 
 
 if __name__ == "__main__":
